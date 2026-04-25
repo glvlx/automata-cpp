@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -g
+CFLAGS = -g -std=c++20
 
 INCLUDES = -I include/
 
