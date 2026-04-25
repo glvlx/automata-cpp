@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <cstdlib>
 
 #include "dfa.hpp"
 
@@ -24,6 +25,13 @@ int main() {
 
     a.set_start_state("q0");
     a.add_end_state("q1");
+
+    if (a.verify()) {
+        std::cout << "The provided DFA definition is complete." << std::endl;
+    } else {
+        std::cout << "The provided DFA definition is incomplete. Exiting." << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
 
     std::string input;
     for (;;) {

@@ -40,6 +40,7 @@ private:
     std::unordered_map<std::string, std::unordered_map<std::string, std::string>> transitions = {};
     std::string start_state = invalid_state;
     std::unordered_set<std::string> end_states = {};
+
 public:
     DFA() = default;
     DFA(std::unordered_set<std::string> alphabet);
@@ -53,6 +54,7 @@ public:
 
     void reset();
     bool test(std::string word);
+    bool verify();
 };
 
 #endif

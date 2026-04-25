@@ -79,6 +79,13 @@ void DFA::reset() {
 }
 
 bool DFA::test(std::string word) {
+#if 0
+    // necessary?
+    if (!verify()) {
+        return false;
+    }
+#endif
+
     std::string state = start_state;
     std::string symbol;
     for (auto c : word) {
@@ -97,4 +104,40 @@ bool DFA::test(std::string word) {
         state = transitions[state][symbol];
     }
     return end_states.count(state) > 0;
+}
+
+bool DFA::verify() {
+    bool start_state_valid = states.count(start_state) > 0;
+    bool end_states_valid = true;
+    for (std::string state : end_states) {
+        if (states.count(state) == 0) {
+            end_states_valid = false;
+            break;
+        }
+    }
+    if (!start_state_valid || !end_states_valid) {
+        return false;
+    }
+
+    for (std::string state : states) {
+        if (state == invalid_state) {
+            continue;
+        }
+        
+        bool state_defined = transitions.count(state) > 0;
+        if (!state_defined) {
+            return false;
+        }
+        for (std::string symbol : alphabet) {
+            bool symbol_defined = transitions[state].count(symbol) > 0;
+            if (!symbol_defined) {
+                return false;
+            }
+            bool next_state_valid = states.count(transitions[state][symbol]) > 0;
+            if (!next_state_valid) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
