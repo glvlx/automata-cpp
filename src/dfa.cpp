@@ -46,8 +46,7 @@ bool DFA::add_transition(std::string symbol, std::string state_from, std::string
         return false;
     }
 
-    transitions.insert({ state_from, std::unordered_map<std::string, std::string>()} );
-    return transitions[state_from].insert({ symbol, state_to }).second;
+    return transitions.insert({ DFAStateSymbol(state_from, symbol), state_to }).second;
 }
 
 bool DFA::set_start_state(std::string state) {
@@ -95,13 +94,12 @@ bool DFA::test(std::string word) {
             return false;
         }
 
-        bool transition_exists = transitions.count(state) > 0
-            && transitions[state].count(symbol) > 0;
+        bool transition_exists = transitions.count(DFAStateSymbol(state, symbol)) > 0;
         if (!transition_exists) {
             return false;
         }
 
-        state = transitions[state][symbol];
+        state = transitions[DFAStateSymbol(state, symbol)];
     }
     return end_states.count(state) > 0;
 }
@@ -123,21 +121,21 @@ bool DFA::verify() {
         if (state == invalid_state) {
             continue;
         }
-        
-        bool state_defined = transitions.count(state) > 0;
-        if (!state_defined) {
-            return false;
-        }
+
         for (std::string symbol : alphabet) {
-            bool symbol_defined = transitions[state].count(symbol) > 0;
-            if (!symbol_defined) {
-                return false;
-            }
-            bool next_state_valid = states.count(transitions[state][symbol]) > 0;
-            if (!next_state_valid) {
+            bool transition_defined = transitions.count(DFAStateSymbol(state, symbol)) > 0;
+            if (!transition_defined) {
                 return false;
             }
         }
     }
     return true;
+}
+
+// DFAStateSymbol
+DFAStateSymbol::DFAStateSymbol(std::string state, std::string symbol): 
+    state(state), symbol(symbol) {}
+
+bool DFAStateSymbol::operator==(const DFAStateSymbol &rhs) const {
+    return state == rhs.state && symbol == rhs.symbol;
 }

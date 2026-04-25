@@ -25,6 +25,27 @@ public:
 };
 #endif
 
+struct DFAStateSymbol {
+public:
+    std::string state;
+    std::string symbol;
+
+    DFAStateSymbol() = delete;
+    DFAStateSymbol(std::string state, std::string symbol);
+    ~DFAStateSymbol() = default;
+
+    bool operator==(const DFAStateSymbol&) const;
+};
+
+template <>
+struct std::hash<DFAStateSymbol> {
+    std::size_t operator()(const DFAStateSymbol &s) const noexcept {
+        std::size_t hstate = std::hash<std::string>{}(s.state);
+        std::size_t hsymbol = std::hash<std::string>{}(s.symbol);
+        return hstate ^ (hsymbol << 1);
+    }
+};
+
 class DFA {
 public:
     const std::string invalid_state = "invalid";
@@ -37,7 +58,7 @@ private:
     std::unordered_set<std::shared_ptr<DFAState>> end_states;
     #endif
     std::set<std::string> states = { invalid_state };
-    std::unordered_map<std::string, std::unordered_map<std::string, std::string>> transitions = {};
+    std::unordered_map<DFAStateSymbol, std::string> transitions;
     std::string start_state = invalid_state;
     std::unordered_set<std::string> end_states = {};
 
