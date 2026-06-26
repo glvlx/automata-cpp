@@ -6,65 +6,48 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <set>
+#include <functional>
 
-#if 0
+namespace Automata {
+
 class DFAState {
 private:
-    static inline int next_id = 1;
+    static inline int next_id = 0; // so that invalid_state.id == 0
 
-    const int id = next_id++;
-    std::string name;
 public:
+    const int id = next_id++;
+    bool is_invalid = false;
+    std::string name;
+    std::unordered_map<std::string, DFAState*> transitions;
+
     DFAState() = delete;
-    DFAState(std::string name);
+    DFAState(std::string name, bool is_invalid=false);
     ~DFAState() = default;
 
-    std::string get_name();
-    void set_name(std::string name);
-    int get_id();
-};
-#endif
-
-struct DFAStateSymbol {
-public:
-    std::string state;
-    std::string symbol;
-
-    DFAStateSymbol() = delete;
-    DFAStateSymbol(std::string state, std::string symbol);
-    ~DFAStateSymbol() = default;
-
-    bool operator==(const DFAStateSymbol&) const;
+    /**
+     * If transition exists, returns a reference to the next state;
+     * otherwise, returns a reference to the shared global invalid state
+     */
+    DFAState *transition(std::string symbol) const;
 };
 
-template <>
-struct std::hash<DFAStateSymbol> {
-    std::size_t operator()(const DFAStateSymbol &s) const noexcept {
-        std::size_t hstate = std::hash<std::string>{}(s.state);
-        std::size_t hsymbol = std::hash<std::string>{}(s.symbol);
-        return hstate ^ (hsymbol << 1);
-    }
-};
+extern DFAState invalid_state;
+
+bool operator==(const DFAState& lhs, const DFAState& rhs);
+bool operator!=(const DFAState& lhs, const DFAState& rhs);
 
 class DFA {
-public:
-    const std::string invalid_state = "invalid";
 private:
-    std::unordered_set<std::string> alphabet = {};
-    #if 0
-    std::unordered_map<std::string, std::shared_ptr<DFAState>> states;
-    std::weak_ptr<DFAState> transition(std::string, std::weak_ptr<DFAState>);
-    std::weak_ptr<DFAState> start_state;
-    std::unordered_set<std::shared_ptr<DFAState>> end_states;
-    #endif
-    std::set<std::string> states = { invalid_state };
-    std::unordered_map<DFAStateSymbol, std::string> transitions;
-    std::string start_state = invalid_state;
-    std::unordered_set<std::string> end_states = {};
+    std::unordered_map<std::string, std::unique_ptr<DFAState>> states;
+    const DFAState* start_state = &invalid_state;
+    std::unordered_set<const DFAState*> end_states;
+
+    // const DFAState* transition(std::string symbol, const DFAState* state);
 
 public:
-    DFA() = default;
-    DFA(std::unordered_set<std::string> alphabet);
+    std::unordered_set<std::string> alphabet = {};
+
+    DFA(std::unordered_set<std::string> alphabet = {});
     ~DFA() = default;
 
     bool add_symbol(std::string symbol);
@@ -77,5 +60,7 @@ public:
     bool test(std::string word);
     bool verify();
 };
+
+} // namespace DFA
 
 #endif

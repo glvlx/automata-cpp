@@ -1,35 +1,38 @@
 #include "dfa.hpp"
 
-#if 0
-// DFAState
-DFAState::DFAState(std::string name):
-    name(name) {}
+namespace Automata {
 
-std::string DFAState::get_name() {
-    return name;
+/*
+ * DFAState
+ */
+
+DFAState::DFAState(std::string name, bool is_invalid):
+    is_invalid(is_invalid), name(name)  {}
+
+DFAState invalid_state{"invalid", true};
+
+DFAState* DFAState::transition(std::string symbol) const {
+    auto next_or_null_it = transitions.find(symbol);
+    if (next_or_null_it == transitions.cend()) {
+        return &invalid_state;
+    }
+    
+    return next_or_null_it->second;
 }
 
-void DFAState::set_name(std::string name) {
-    this->name = name;
+bool operator==(const DFAState& lhs, const DFAState& rhs) {
+    return lhs.id == rhs.id;
 }
 
-int DFAState::get_id() {
-    return id;
+bool operator!=(const DFAState& lhs, const DFAState& rhs) {
+    return !(lhs == rhs);
 }
-#endif
 
-// DFA
-#if 0
-DFA::DFA():
-    states({ { invalid_state, std::make_shared<DFAState>(invalid_state) } }) {}
+/*
+ * DFA
+ */
 
-DFA::DFA(std::unordered_set<std::string> alphabet):
-    states({ { invalid_state, std::make_shared<DFAState>(invalid_state) } }),
-    alphabet(alphabet) {}
-#endif
-
-DFA::DFA(std::unordered_set<std::string> alphabet):
-    states({ invalid_state }),
+DFA::DFA(std::unordered_set<std::string> alphabet): 
     alphabet(alphabet) {}
 
 bool DFA::add_symbol(std::string symbol) {
@@ -37,7 +40,8 @@ bool DFA::add_symbol(std::string symbol) {
 }
 
 bool DFA::add_state(std::string state_name) {
-    return states.insert(state_name).second;
+    bool success = states.emplace(std::make_pair(state_name, std::make_unique<DFAState>(state_name))).second;
+    return success;
 }
 
 bool DFA::add_transition(std::string symbol, std::string state_from, std::string state_to) {
@@ -46,34 +50,36 @@ bool DFA::add_transition(std::string symbol, std::string state_from, std::string
         return false;
     }
 
-    return transitions.insert({ DFAStateSymbol(state_from, symbol), state_to }).second;
+    DFAState* rstate_from = states.at(state_from).get();
+    DFAState* rstate_to = states.at(state_to).get();
+    bool success = rstate_from->transitions.emplace(std::make_pair(symbol, rstate_to)).second;
+    return success;
 }
 
-bool DFA::set_start_state(std::string state) {
-    bool args_valid = states.count(state) > 0;
+bool DFA::set_start_state(std::string state_name) {
+    bool args_valid = states.count(state_name) > 0;
     if (!args_valid) {
         return false;
     }
 
-    start_state = state;
+    start_state = states.at(state_name).get();
     return true;
 }
 
-bool DFA::add_end_state(std::string state) {
-    bool args_valid = states.count(state) > 0;
+bool DFA::add_end_state(std::string state_name) {
+    bool args_valid = states.count(state_name) > 0;
     if (!args_valid) {
         return false;
     }
 
-    return end_states.insert(state).second;
+    bool success = end_states.emplace(states.at(state_name).get()).second;
+    return success;
 }
 
 void DFA::reset() {
     alphabet.clear();
     states.clear();
-    states.insert(invalid_state);
-    transitions.clear();
-    start_state = invalid_state;
+    start_state = &invalid_state;
     end_states.clear();
 }
 
@@ -85,30 +91,30 @@ bool DFA::test(std::string word) {
     }
 #endif
 
-    std::string state = start_state;
+    const DFAState* pstate = start_state;
     std::string symbol;
     for (auto c : word) {
-        symbol = {c};
+        symbol = c;
         bool symbol_valid = alphabet.count(symbol) > 0;
         if (!symbol_valid) {
             return false;
         }
 
-        bool transition_exists = transitions.count(DFAStateSymbol(state, symbol)) > 0;
+        pstate = pstate->transition(symbol); // guaranteed to exist (kind of)
+        bool transition_exists = *pstate != invalid_state;
         if (!transition_exists) {
             return false;
         }
-
-        state = transitions[DFAStateSymbol(state, symbol)];
     }
-    return end_states.count(state) > 0;
+    return end_states.count(pstate) > 0;
 }
 
 bool DFA::verify() {
-    bool start_state_valid = states.count(start_state) > 0;
+    bool start_state_valid = states.count(start_state->name) > 0;
     bool end_states_valid = true;
-    for (std::string state : end_states) {
-        if (states.count(state) == 0) {
+    for (const DFAState* rstate : end_states) {
+        std::string state_name = rstate->name;
+        if (states.count(state_name) == 0) {
             end_states_valid = false;
             break;
         }
@@ -116,26 +122,7 @@ bool DFA::verify() {
     if (!start_state_valid || !end_states_valid) {
         return false;
     }
-
-    for (std::string state : states) {
-        if (state == invalid_state) {
-            continue;
-        }
-
-        for (std::string symbol : alphabet) {
-            bool transition_defined = transitions.count(DFAStateSymbol(state, symbol)) > 0;
-            if (!transition_defined) {
-                return false;
-            }
-        }
-    }
     return true;
 }
 
-// DFAStateSymbol
-DFAStateSymbol::DFAStateSymbol(std::string state, std::string symbol): 
-    state(state), symbol(symbol) {}
-
-bool DFAStateSymbol::operator==(const DFAStateSymbol &rhs) const {
-    return state == rhs.state && symbol == rhs.symbol;
-}
+} // namespace DFA
