@@ -1,6 +1,19 @@
 cmake_minimum_required(VERSION 3.25)
 project(Automata VERSION 0.1 LANGUAGES CXX)
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang)$")
+    add_compile_options(-Wall -Wextra -Wpedantic -Wold-style-cast -Wcast-align
+                        -Wunused -Wnon-virtual-dtor -Wconversion -Wsign-conversion
+                        -Wdouble-promotion -Wformat=2 -Wimplicit-fallthrough)
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "^GNU$")
+        add_compile_options(-Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches
+                            -Wlogical-op -Wnull-dereference -Wuseless-cast)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "^Clang$")
+        # add_compile_options(-Wlifetime)
+    endif()
+endif()
+
 add_library(dfa src/dfa.cpp)
 target_include_directories(dfa PRIVATE include)
 
