@@ -35,8 +35,12 @@ int main() {
 
     std::string input;
     for (;;) {
-        std::cout << "Enter a (binary) word: ";
+        std::cout << "Enter a (binary) word or ':q' to quit >> ";
         std::cin >> input;
+        if (input == ":q") {
+            std::cout << "Exiting." << std::endl;
+            break;
+        }
         std::cout << input << " is " << (a.test(input) ? "" : "not ") << "accepted." << std::endl;
     }
 
