@@ -17,6 +17,9 @@ endif()
 add_library(dfa src/dfa.cpp)
 target_include_directories(dfa PRIVATE include)
 
+add_library(nfa src/nfa.cpp)
+target_include_directories(nfa PRIVATE include)
+
 add_executable(playground main.cpp)
 target_include_directories(playground PRIVATE include)
-target_link_libraries(playground PRIVATE dfa)
+target_link_libraries(playground PRIVATE dfa nfa)
