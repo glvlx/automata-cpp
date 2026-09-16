@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#if 0
+
 namespace Automata {
 
 /*
@@ -117,3 +119,5 @@ bool NFA::verify() const {
 }
 
 } // namespace Automata
+
+#endif
