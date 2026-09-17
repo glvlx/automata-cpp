@@ -5,6 +5,7 @@
 #include "dfa-autogen.hpp"
 
 using Automata::AutoDFA;
+using Automata::DFAGenerator;
 
 int main() {
     // all binary numbers that start and end with 1
@@ -21,7 +22,7 @@ int main() {
     a.add_transition(q2, '0', q2);
     a.add_transition(q2, '1', q1);
 
-    std::string dfa_fpath = "./bin_11.txt";
+    std::string dfa_fpath = "bin_11.txt";
     std::ofstream dfa_file(dfa_fpath);
     bool result = a.serialize(dfa_file);
     if (result) {
@@ -32,12 +33,18 @@ int main() {
         std::cerr << "Failed to close '" << dfa_fpath << "'" << std::endl;
     }
 
+    std::ifstream dfa_in(dfa_fpath);
+    std::ofstream dfa_code_out("./_auto_bin_11.hpp");
+    DFAGenerator dfagen(dfa_in);
+    result = dfagen.deserialize(dfa_code_out, "bin_11");
+    std::cout << "Serialization " << (result ? "successful" : "failed") << std::endl;
+    dfa_code_out.close();
+
     std::string in;
     std::cout << "Enter a binary string: ";
     std::cin >> in;
     bool is_correct = a.check(in);
     std::cout << in << " is " << (is_correct ? "correct" : "incorrect") << std::endl;
-
 
     return 0;
 }

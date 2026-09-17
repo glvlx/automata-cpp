@@ -10,7 +10,7 @@ Each line has to be of one of the following forms:
 - Start state definition: `! [state_name]`
   - Each start state definition overwrites all previous definitions
 
-and a state name may contain only alphanumeric characters and `_`.
+and a state name may only contain alphanumeric characters and `_`.
 Note that square brackets `[]` are not literal and only denote user text fields.
 
 Furthermore, ignored are:
