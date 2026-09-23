@@ -2,7 +2,7 @@
 #include <fstream>
 
 #define DEBUG_PRINT true
-#include "dfa-autogen.hpp"
+#include "dfa_autogen.hpp"
 
 using Automata::AutoDFA;
 using Automata::DFAGenerator;

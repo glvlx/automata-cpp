@@ -11,70 +11,9 @@
 #include <string_view>
 
 #include "util.hpp"
-
-#define TAB "    "
+#include "fa_token.hpp"
 
 namespace Automata {
-
-/**
- * Should only be generated.
- */
-struct GenDFA {
-    std::unordered_map<std::string, bool> is_accepted_;
-    std::unordered_map<std::string, std::unordered_map<char, std::string>> transitions_;
-    std::string start_state_, state_;
-
-    GenDFA() = default;
-
-    bool step(char symbol) {
-        auto next_state_it = transitions_[state_].find(symbol);
-        if (next_state_it == transitions_[state_].end()) {
-            return false;
-        } else {
-            state_ = next_state_it->second;
-            return true;
-        }
-    }
-
-    bool check(std::string in) {
-        state_ = start_state_;
-
-        for (char s : in) {
-            if (!step(s)) {
-                return false;
-            }
-        }
-        return is_accepted_.at(state_);
-    }
-};
-
-enum class TokenType {
-    START_MARKER,
-    ACCEPT_MARKER,
-    RARROW,
-    STATE_NAME,
-    SYMBOL,
-    INVALID,
-    EMPTY,
-    COMMENT
-};
-
-constexpr std::string_view to_string(TokenType t) {
-    switch(t) {
-        case TokenType::START_MARKER:       return "START_MARKER";
-        case TokenType::ACCEPT_MARKER:      return "ACCEPT_MARKER";
-        case TokenType::RARROW:             return "RARROW";
-        case TokenType::STATE_NAME:         return "STATE_NAME";
-        case TokenType::SYMBOL:             return "SYMBOL";
-        case TokenType::INVALID:            return "INVALID";
-        case TokenType::EMPTY:              return "EMPTY";
-        case TokenType::COMMENT:            return "COMMENT";
-    }
-}
-
-std::ostream& operator<<(std::ostream& os, TokenType t) {
-    return os << to_string(t);
-}
 
 class DFAGenerator {
     std::istream& is_;
@@ -121,33 +60,6 @@ class DFAGenerator {
         TokenType type_;
         std::string token_;
     };
-
-    /**
-     * Checks if the provided name is a valid C++ identifier
-     */
-    bool is_valid_id(std::string dfa_name) {
-        if (dfa_name.size() == 0 || isdigit(dfa_name.front())) {
-            return false;
-        }
-        for (char c : dfa_name) {
-            if (!(isalnum(c) || c == '_')) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    bool is_valid_state_name(std::string state_name) {
-        if (state_name.size() == 0) {
-            return false;
-        }
-        for (char c : state_name) {
-            if (!(isalnum(c) || c == '_')) {
-                return false;
-            }
-        }
-        return true;
-    }
 
     void fmt_error(int line_no, std::string line, std::string reason = "") {
         valid_ = false;
@@ -480,7 +392,5 @@ public:
 };
 
 } // namespace Automata
-
-#undef TAB
 
 #endif
