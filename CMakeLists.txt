@@ -31,4 +31,4 @@ target_compile_features(dfa-autogen PRIVATE cxx_std_17)
 
 add_executable(nfa2dfa nfa2dfa.cpp)
 target_include_directories(nfa2dfa PRIVATE include)
-target_compile_features(dfa-autogen PRIVATE cxx_std_17)
+target_compile_features(nfa2dfa PRIVATE cxx_std_17)
