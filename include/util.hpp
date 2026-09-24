@@ -1,8 +1,10 @@
 #ifndef UTIL_H_
 #define UTIL_H_
 
-#ifndef DEBUG_PRINT
+#ifndef NDEBUG
 #define DEBUG_PRINT true
+#else
+#define DEBUG_PRINT false
 #endif
 
 #define TAB "    "
@@ -10,9 +12,9 @@
 #include <iostream>
 #include <string>
 
-void debug_print(std::string message) {
+void debug_print(std::string message, std::ostream& os=std::cout) {
 #if DEBUG_PRINT
-    std::cout << "[dbg]: " << message << std::endl;
+    os << "[dbg]: " << message << std::endl;
 #endif
 }
 

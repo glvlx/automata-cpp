@@ -310,9 +310,7 @@ public:
             return false;
         }
         
-        #if DEBUG_PRINT
-        std::cout << "[after epsilon elimination:]\n";
-        #endif
+        debug_print("new transitions after epsilon elimination:");
 
         /* Eliminate epsilon-transitions */
         for (const auto& [state_from, map] : transitions_) {
@@ -321,10 +319,7 @@ public:
                 for (const auto& state_to : target_set) {
                     for (const auto& post_state: eps_path_from[state_to]) {
                         transitions_[state_from][char_on].insert(post_state);
-                        #if 0
-                        std::cout << "[add] " << state_from << ' '
-                                    << char_on << " > " << post_state << '\n';
-                        #endif
+                        debug_print("[add] " + state_from + " " + char_on + " > " + post_state);
                     }
                 }
             }
@@ -334,25 +329,12 @@ public:
                 for (const auto& [char_on, target_set] : map) {
                     for (const auto& state_to : target_set) {
                         transitions_[pre_state][char_on].insert(state_to);
-                        #if 0
-                        std::cout << "[add] " << pre_state << ' '
-                                    << char_on << " > " << state_to << '\n';
-                        #endif
+                        debug_print("[add] " + pre_state + " " + char_on + " > " + state_to);
                     }
                 }
             }
-
-            #if DEBUG_PRINT
-            for (const auto& [char_on, target_set] : map) {
-                for (const auto& state_to : target_set) {
-                    std::cout << state_from << ' ' << char_on << " > " << state_to << "\n";
-                }
-            }
-            #endif
         }
-        #if DEBUG_PRINT
-        std::cout << std::endl;
-        #endif
+        debug_print("");
 
         /* Generate compound states*/
         std::queue<CompoundState*> q_pstate;
@@ -406,38 +388,6 @@ public:
                 os << state_from.hash() << ' ' << char_on << " > " << state_to.hash() << std::endl;
             }
         }
-
-        #if 0
-        /* Generate code */
-        if (valid_) {
-            /* Add start state */
-            os << TAB << "auto& q" << start_state_name_ << " = dfa.get_start_state(" 
-               << (states_.at(start_state_name_) ? "true" : "false") << ");" << std::endl;
-
-            os << std::endl;
-            
-            /* Add all other states */
-            for (auto [state_name, is_accepting] : states_) {
-                if (state_name == start_state_name_) continue;
-
-                os << TAB << "auto& q" << state_name << " = dfa.new_state(" 
-                   << (is_accepting ? "true" : "false") << ");" << std::endl;
-            }
-
-            os << std::endl;
-
-            /* Add transitions */
-            for (auto [state_from, map] : transitions_) {
-                for (auto [char_on, state_to] : map) {
-                    os << TAB << "dfa.add_transition(" 
-                       << "q" << state_from << ", "
-                       << char_on << ", "
-                       << "q" << state_to
-                       << ");" << std::endl;
-                }
-            }
-        }
-        #endif
         return valid_;
     }
 };
