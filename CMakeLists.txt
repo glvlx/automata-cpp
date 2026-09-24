@@ -28,3 +28,7 @@ target_compile_features(playground PRIVATE cxx_std_17)
 add_executable(dfa-autogen autogen-driver.cpp)
 target_include_directories(dfa-autogen PRIVATE include)
 target_compile_features(dfa-autogen PRIVATE cxx_std_17)
+
+add_executable(nfa2dfa nfa2dfa.cpp)
+target_include_directories(nfa2dfa PRIVATE include)
+target_compile_features(dfa-autogen PRIVATE cxx_std_17)
