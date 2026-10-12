@@ -1,5 +1,12 @@
 .vscode/
 build/
+Release/
+Debug/
+
+generated_dfa/
+generated_dfa_specs/
+
 test.cpp
 *.txt
 _auto_*.hpp
+*.out

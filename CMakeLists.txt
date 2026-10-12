@@ -14,6 +14,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang)$")
     endif()
 endif()
 
+# proxy to use "include" in subdirectories
+add_library(internal_headers INTERFACE)
+target_include_directories(internal_headers INTERFACE include)
+
 add_library(dfa src/dfa.cpp)
 target_include_directories(dfa PRIVATE include)
 
@@ -32,3 +36,10 @@ target_compile_features(dfa-autogen PRIVATE cxx_std_17)
 add_executable(nfa2dfa nfa2dfa.cpp)
 target_include_directories(nfa2dfa PRIVATE include)
 target_compile_features(nfa2dfa PRIVATE cxx_std_17)
+
+# Tests
+include(CTest)
+
+if (BUILD_TESTING) # false if include(CTest) hasn't been called in the root file (i.e. this file has been included)
+    add_subdirectory(tests)
+endif()
