@@ -89,7 +89,7 @@ class DFAGenerator {
         }
         error_os_ << "Invalid DFA specification: wrong format"
                   << (reason.size() > 0 ? " - " + reason : "") << "\n"
-                  << "Line #" << line_no << ": " << line << std::endl;
+                  << "[Line #" << line_no << "]: " << line << std::endl;
     }
 
     void name_error(int line_no, std::string line, std::string name) {
@@ -98,7 +98,7 @@ class DFAGenerator {
             valid_ = false;
         }
         error_os_ << "Invalid DFA specification: wrong state name \"" << name << "\"\n"
-                  << "Line #" << line_no << ": " << line << std::endl;
+                  << "[Line #" << line_no << "]: " << line << std::endl;
     }
 
     void sym_error(int line_no, std::string line, std::string symbol) {
@@ -107,7 +107,7 @@ class DFAGenerator {
             valid_ = false;
         }
         error_os_ << "Invalid DFA specification: wrong symbol " << symbol << "\n"
-                  << "Line #" << line_no << ": " << line << std::endl;
+                  << "[Line #" << line_no << "]: " << line << std::endl;
     }
 
 public:
@@ -205,6 +205,7 @@ public:
                    && tokens[3].type_ == TokenType::STATE_NAME
                 )) {
                     fmt_error(line_no_, line, "wrong transition format");
+                    continue; // to the next line
                 }
                 std::string state_from = tokens[0].token_;
                 std::string state_to = tokens[3].token_;

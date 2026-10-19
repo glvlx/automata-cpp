@@ -8,5 +8,6 @@ generated_dfa_specs/
 
 test.cpp
 *.txt
+!CMakeLists.txt
 _auto_*.hpp
 *.out

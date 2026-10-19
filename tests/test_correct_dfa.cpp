@@ -9,6 +9,7 @@
 #include "generated_dfa/accept_empty.hpp"
 #include "generated_dfa/accept_none.hpp"
 #include "generated_dfa/accept_even.hpp"
+#include "generated_dfa/rwth.hpp"
 
 #define BOOL_TO_STR(x) ((x) ? "true" : "false")
 
@@ -64,4 +65,13 @@ TEST(CorrectDFATest, TestAcceptEven) {
         {"010", true},
         {"110", true}
     }, DFA_accept_even::init);
+}
+
+TEST(CorrectDFATest, TestRWTH) {
+    end_to_end({
+        {"", false},
+        {"RWTH", true},
+        {"rwth", false},
+        {"1234", false}
+    }, DFA_rwth::init);
 }
