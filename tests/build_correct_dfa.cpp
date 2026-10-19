@@ -2,6 +2,7 @@
 #include <fstream>
 #include <filesystem>
 #include <sysexits.h>
+#include <gtest/gtest.h>
 
 #include "dfa_generator.hpp"
 
@@ -13,6 +14,8 @@ int main() {
 
     std::filesystem::create_directory(target_directory); // can throw
 
+    bool task_successful = true;
+
     for (auto const& dfa_spec_fsentry : std::filesystem::directory_iterator(correct_dfa_specs)) {
         std::string dfa_name = dfa_spec_fsentry.path().stem();
         std::ifstream is(dfa_spec_fsentry.path());
@@ -22,8 +25,12 @@ int main() {
         std::ofstream os(target_path);
 
         Automata::DFAGenerator dfagen(is);
-        dfagen.deserialize(os, dfa_name);
+        bool dfa_successful = dfagen.deserialize(os, dfa_name) == Automata::FAGenStatusCode::OK;
+        if (!dfa_successful) {
+            task_successful = false;
+            std::cerr << "Error: cannot deserialize \"" << dfa_name << "\"" << std::endl;
+        }
     }
 
-    return 0;
+    return !task_successful;
 }

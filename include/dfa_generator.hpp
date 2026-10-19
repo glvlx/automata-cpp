@@ -1,5 +1,5 @@
-#ifndef DFA_AUTOGEN_H_
-#define DFA_AUTOGEN_H_
+#ifndef DFA_GENERATOR_H_
+#define DFA_GENERATOR_H_
 
 #include <iostream>
 #include <unordered_map>
@@ -12,17 +12,36 @@
 
 #include "util.hpp"
 #include "fa_token.hpp"
+#include "fagen_status_code.hpp"
 
 namespace Automata {
 
+/**
+ * Reads a DFA specification from an istream and generates corresponding C++ code.
+ * An instance shall not be copied or mutated. Parsing multiple specifications
+ * requires multiple instances of this class.
+ */
 class DFAGenerator {
     std::istream& is_;
+    std::ostream& error_os_;
     int line_no_ = 1;
     bool valid_ = true;
+    FAGenStatusCode status_code_ = FAGenStatusCode::OK;
     std::unordered_map<std::string, bool> states_; // bool indicates if the state is accepted
     std::string start_state_name_;
     std::unordered_map<std::string, std::unordered_map<std::string, std::string>> transitions_;
     
+    /**
+     * Returns token type (for input parsing).
+     * Recognizes:
+     * - `!`: START_MARKER
+     * - `+`: ACCEPT_MARKER
+     * - `>`: RARROW (denotes rhs of transitions)
+     * - `//.*` and following symbols: COMMENT
+     * - `[0-9a-zA-Z_]*`: STATE_NAME
+     * - `'.'`: SYMBOL
+     * otherwise INVALID.
+     */
     TokenType get_token_type(std::string tok) {
         if (tok.size() == 0) {
             return TokenType::INVALID;
@@ -48,7 +67,7 @@ class DFAGenerator {
             return TokenType::STATE_NAME;
         }
 
-        /* SYMBOL, for now only one singular character in single quotes */
+        /* SYMBOL, for now only one singular character in single quotes. */
         if (tok.size() == 3 && tok[0] == '\'' && tok[2] == '\'') {
             return TokenType::SYMBOL;
         }
@@ -61,48 +80,49 @@ class DFAGenerator {
         std::string token_;
     };
 
+    /* Functions displaying errors and setting parser state to invalid. */
+
     void fmt_error(int line_no, std::string line, std::string reason = "") {
-        valid_ = false;
-        std::cerr << "Cannot deserialize DFA: wrong format"
+        if (valid_) {
+            status_code_ = FAGenStatusCode::WRONG_FMT;
+            valid_ = false;
+        }
+        error_os_ << "Invalid DFA specification: wrong format"
                   << (reason.size() > 0 ? " - " + reason : "") << "\n"
                   << "Line #" << line_no << ": " << line << std::endl;
     }
 
     void name_error(int line_no, std::string line, std::string name) {
-        valid_ = false;
-        std::cerr << "Cannot deserialize DFA: wrong state name \"" << name << "\"\n"
+        if (valid_) {
+            status_code_ = FAGenStatusCode::WRONG_STATE_NAME;
+            valid_ = false;
+        }
+        error_os_ << "Invalid DFA specification: wrong state name \"" << name << "\"\n"
                   << "Line #" << line_no << ": " << line << std::endl;
     }
 
     void sym_error(int line_no, std::string line, std::string symbol) {
-        valid_ = false;
-        std::cerr << "Cannot deserialize DFA: wrong symbol " << symbol << "\n"
+        if (valid_) {
+            status_code_ = FAGenStatusCode::WRONG_SYMBOL;
+            valid_ = false;
+        }
+        error_os_ << "Invalid DFA specification: wrong symbol " << symbol << "\n"
                   << "Line #" << line_no << ": " << line << std::endl;
     }
 
 public:
-    DFAGenerator(std::istream& is)
-    : is_(is) {}
-
-    bool deserialize(std::ostream& os, std::string dfa_name) {
-        if (!is_valid_id(dfa_name)) {
-            std::cerr << "Cannot deserialize DFA: DFA name \"" << dfa_name << "\" contains characters "
-                      << "other than alphanumeric characters and underscore." << std::endl;
-            return false;
-        }
-
-        os << "#ifndef DFA_" << dfa_name << "_H__\n"
-           << "#define DFA_" << dfa_name << "_H__\n"
-           << "\n"
-           << "namespace DFA_" << dfa_name << " {\n"
-           << "\n"
-           << "void init(Automata::AutoDFA& dfa) {"
-           << std::endl;
-
+    /**
+     * Reads DFA specification and prepares an internal representation to generate code.
+     */
+    DFAGenerator(std::istream& is, std::ostream& error_os = std::cerr)
+    : is_(is)
+    , error_os_(error_os) {
         /* split input into lines */
         std::string line;
+
+        DEBUG_PRINT("tokens:");
         while (std::getline(is_, line)) {
-            std::stringstream aux;
+            std::stringstream aux; // special symbols separated with spaces to make parsing easier
             std::vector<Token> tokens;
 
             /* first pass: separate special characters with whitespaces and verify characters */
@@ -114,7 +134,7 @@ public:
                 }
                 /* should not be necessary
                 else {
-                    std::cerr << "Cannot deserialize a DFA: unknown character '" << c << "'" << std::endl;
+                    error_os_ << "Invalid DFA specification: unknown character '" << c << "'" << std::endl;
                     return false;
                 }
                 */ 
@@ -125,12 +145,10 @@ public:
             std::string tok;
             while (aux >> tok) {
                 TokenType toktype = get_token_type(tok);
-                if (toktype == TokenType::EMPTY) {
-                    throw std::runtime_error("Warning: empty token found");
-                } else if (toktype == TokenType::COMMENT) {
+                if (toktype == TokenType::COMMENT) {
                     break;
                 } else if (toktype == TokenType::INVALID) {
-                    std::cerr << "Cannot deserialize a DFA: invalid token [" << tok << "]" << std::endl;
+                    fmt_error(line_no_, line, "invalid token [" + tok + "]");
                 }
                 tokens.push_back({
                     toktype, 
@@ -138,13 +156,13 @@ public:
                 });
             }
 
-            #if DEBUG_PRINT
-            // for now: just print tokens
+            /* print tokens in debug mode */
+            #if DEBUG_PRINT_ENABLED
             std::cout << "{";
             for (auto token : tokens) {
                 std::cout << "[" << token.type_ << ": " << token.token_ << "], ";
             }
-            std::cout << "}" << std::endl;
+            std::cout << "\b\b}\n";
             #endif
 
             /* determine line type & save relevant information */
@@ -214,38 +232,75 @@ public:
 
             line_no_++;
         }
+        #if DEBUG_PRINT_ENABLED
+        std::cout.flush();
+        #endif
         if (!is_valid_state_name(start_state_name_)) {
-            valid_ = false;
-            std::cerr << "Cannot deserialize DFA: no initial state" << std::endl;
+            if (valid_) {
+                status_code_ = FAGenStatusCode::NO_INIT;
+                valid_ = false;
+            }
+            error_os_ << "Invalid DFA specification: no initial state (with a valid name)" << std::endl;
+        }
+    }
+
+    /**
+     * Gets status code (without deserializing if OK)
+     */
+    FAGenStatusCode get_status_code() {
+        return status_code_;
+    }
+
+    /**
+     * Writes C++ code corresponding to the specification to an ostream.
+     * 
+     * @return status code
+     */
+    FAGenStatusCode deserialize(std::ostream& os, std::string dfa_name) {
+        if (!is_valid_id(dfa_name)) {
+            error_os_ << "Cannot generate code: DFA name \"" << dfa_name << "\" contains characters "
+                      << "other than alphanumeric characters and underscore." << std::endl;
+            return FAGenStatusCode::WRONG_NAME;
         }
 
-        /* Generate code */
-        if (valid_) {
-            /* Add start state */
-            os << TAB << "auto& q" << start_state_name_ << " = dfa.get_start_state(" 
-               << (states_.at(start_state_name_) ? "true" : "false") << ");" << std::endl;
+        if (!valid_) {
+            error_os_ << "Cannot generate code for '" << dfa_name 
+                      << "': input specification invalid." << std::endl;
+            return status_code_;
+        }
 
-            os << std::endl;
-            
-            /* Add all other states */
-            for (auto [state_name, is_accepting] : states_) {
-                if (state_name == start_state_name_) continue;
+        os << "#ifndef DFA_" << dfa_name << "_H__\n"
+           << "#define DFA_" << dfa_name << "_H__\n"
+           << "\n"
+           << "namespace DFA_" << dfa_name << " {\n"
+           << "\n"
+           << "void init(Automata::AutoDFA& dfa) {"
+           << std::endl;
 
-                os << TAB << "auto& q" << state_name << " = dfa.new_state(" 
-                   << (is_accepting ? "true" : "false") << ");" << std::endl;
-            }
+        /* add start state */
+        os << TAB << "auto& q" << start_state_name_ << " = dfa.get_start_state(" 
+            << (states_.at(start_state_name_) ? "true" : "false") << ");" << std::endl;
 
-            os << std::endl;
+        os << std::endl;
+        
+        /* add all other states */
+        for (auto [state_name, is_accepting] : states_) {
+            if (state_name == start_state_name_) continue;
 
-            /* Add transitions */
-            for (auto [state_from, map] : transitions_) {
-                for (auto [char_on, state_to] : map) {
-                    os << TAB << "dfa.add_transition(" 
-                       << "q" << state_from << ", "
-                       << char_on << ", "
-                       << "q" << state_to
-                       << ");" << std::endl;
-                }
+            os << TAB << "auto& q" << state_name << " = dfa.new_state(" 
+                << (is_accepting ? "true" : "false") << ");" << std::endl;
+        }
+
+        os << std::endl;
+
+        /* add transitions */
+        for (auto [state_from, map] : transitions_) {
+            for (auto [char_on, state_to] : map) {
+                os << TAB << "dfa.add_transition(" 
+                    << "q" << state_from << ", "
+                    << char_on << ", "
+                    << "q" << state_to
+                    << ");" << std::endl;
             }
         }
 
@@ -254,10 +309,13 @@ public:
            << "} // namespace DFA_" << dfa_name << "\n"
            << "\n"
            << "#endif" << std::endl;
-        return valid_;
+        return FAGenStatusCode::OK;
     }
 };
 
+/**
+ * 
+ */
 class AutoDFA {
 private:
     int max_id_ = 0;
@@ -274,7 +332,7 @@ public:
         , is_accepted_(is_accepted) {
             std::stringstream dbgs;
             dbgs << "new state at " << this;
-            debug_print(dbgs.str());
+            DEBUG_PRINT(dbgs.str());
         }
     };
 
@@ -291,7 +349,7 @@ public:
     AutoDFAState& get_start_state(bool is_accepted = false) {
         std::stringstream dbgs;
         dbgs << "new reference to " << &states_.front();
-        debug_print(dbgs.str());
+        DEBUG_PRINT(dbgs.str());
 
         if (is_accepted) {
             states_.front().is_accepted_ = true;
@@ -310,7 +368,7 @@ public:
         
         std::stringstream dbgs;
         dbgs << "new reference to " << &state;
-        debug_print(dbgs.str());
+        DEBUG_PRINT(dbgs.str());
 
         transitions_.emplace(&state, 
                              std::unordered_map<char, AutoDFAState*>());

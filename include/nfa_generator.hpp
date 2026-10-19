@@ -13,6 +13,8 @@
 #include "fa_token.hpp"
 #include "util.hpp"
 
+#define EPSILON_TOKEN "_"
+
 /**
  * Does not create an actual NFA;
  * instead, automatically creates a DFA using power set construction
@@ -20,8 +22,9 @@
 
 namespace Automata {
 
-const std::string EPSILON_TOKEN = "_";
-
+/**
+ * Represents states resulting from power set construction
+ */
 class CompoundState {
     std::unordered_set<std::string> simple_states_;
     std::size_t hash_ = 0;
@@ -57,12 +60,15 @@ public:
         return simple_states_;
     }
 
-    bool operator==(const CompoundState& other) const {
-        return simple_states_ == other.simple_states_;
-    }
-
+    /**
+     * Adds up hashes of the names of underlying "primary" states
+     */
     std::size_t hash() const noexcept {
         return hash_;
+    }
+
+    bool operator==(const CompoundState& other) const {
+        return simple_states_ == other.simple_states_;
     }
 };
 
@@ -77,19 +83,18 @@ struct std::hash<Automata::CompoundState> {
 
 namespace Automata {
 
-class NFAGenerator {
-
+class NFAGenerator final {
     std::istream& is_;
     int line_no_ = 1;
     bool valid_ = true;
-    std::unordered_map<std::string, bool> states_; // bool indicates if the state is accepted
+    std::unordered_map<std::string, bool> states_; // bool indicates if the state is accepting
     std::unordered_map<CompoundState, bool> compound_states_;
-    std::unordered_map<std::string, CompoundState> part_of_compound_;
     std::string start_state_name_;
     CompoundState compound_start_state_;
     std::unordered_map<std::string, 
         std::unordered_map<std::string, std::unordered_set<std::string>>> transitions_;
-    std::unordered_map<CompoundState, std::unordered_map<std::string, CompoundState>> compound_transitions_;
+    std::unordered_map<CompoundState, 
+        std::unordered_map<std::string, CompoundState>> compound_transitions_;
     std::unordered_map<std::string, std::unordered_set<std::string>> eps_path_from, eps_path_to;
     
     TokenType get_token_type(std::string tok) {
@@ -151,11 +156,7 @@ class NFAGenerator {
                   << "Line #" << line_no << ": " << line << std::endl;
     }
 
-public:
-    NFAGenerator(std::istream& is)
-    : is_(is) {}
-
-    bool make_dfa_spec(std::ostream& os) {
+    bool parse_input() {
         /* split input into lines */
         std::string line;
         while (std::getline(is_, line)) {
@@ -169,25 +170,16 @@ public:
                 } else {
                     aux << c;
                 }
-                /* should not be necessary
-                else {
-                    std::cerr << "Cannot deserialize a DFA: unknown character '" << c << "'" << std::endl;
-                    return false;
-                }
-                */ 
-                
             }
 
             /* second pass: split tokens */
             std::string tok;
             while (aux >> tok) {
                 TokenType toktype = get_token_type(tok);
-                if (toktype == TokenType::EMPTY) {
-                    throw std::runtime_error("Warning: empty token found");
-                } else if (toktype == TokenType::COMMENT) {
+                if (toktype == TokenType::COMMENT) {
                     break;
                 } else if (toktype == TokenType::INVALID) {
-                    std::cerr << "Cannot deserialize a DFA: invalid token [" << tok << "]" << std::endl;
+                    std::cerr << "Cannot parse the NFA: invalid token [" << tok << "]" << std::endl;
                 }
                 tokens.push_back({
                     toktype, 
@@ -195,7 +187,7 @@ public:
                 });
             }
 
-            #if DEBUG_PRINT
+            #if DEBUG_PRINT_ENABLED
             // print tokens
             std::cout << "{";
             for (auto token : tokens) {
@@ -206,13 +198,14 @@ public:
 
             /* determine line type & save relevant information */
             if (tokens.size() == 0) {
+                /* empty line */
                 continue;
             } else if (tokens.front().type_ == TokenType::START_MARKER) {
                 if (tokens.size() > 2) {
                     fmt_error(line_no_, line, "more than one start state specified");
                     continue;
                 }
-                /* Start state declaration */
+                /* start state declaration */
                 std::string state_name = tokens.back().token_;
                 if (!is_valid_state_name(state_name)) {
                     name_error(line_no_, line, state_name);
@@ -225,7 +218,7 @@ public:
                     fmt_error(line_no_, line, "no accepting states specified");
                     continue;
                 }
-                /* Accepted state declaration; state name(s) present */
+                /* accepting state declaration */
                 auto it = tokens.begin();
                 for (++it; it != tokens.end(); it++) {
                     Token token = *it;
@@ -268,10 +261,9 @@ public:
 
                     states_.try_emplace(state_to, false);
 
-
                     if (char_on == EPSILON_TOKEN) {
-                        for (auto pre_state : eps_path_to[state_from]) {
-                            for (auto post_state : eps_path_from[state_to]) {
+                        for (const auto& pre_state : eps_path_to[state_from]) {
+                            for (const auto& post_state : eps_path_from[state_to]) {
                                 eps_path_from[state_from].insert(post_state);
                                 eps_path_from[pre_state].insert(state_to);
                                 eps_path_from[pre_state].insert(post_state);
@@ -305,12 +297,14 @@ public:
             std::cerr << "Cannot deserialize NFA: no initial state" << std::endl;
         }
 
-        /* No further error detection */
-        if (!valid_) {
-            return false;
-        }
-        
-        debug_print("new transitions after epsilon elimination:");
+        return valid_;
+    }
+
+    /**
+     * @pre valid eps_path_from and eps_path_pre (from parse_input())
+     */
+    void eliminate_epsilon() {
+        DEBUG_PRINT("new transitions after epsilon elimination:");
 
         /* Eliminate epsilon-transitions */
         for (const auto& [state_from, map] : transitions_) {
@@ -319,7 +313,7 @@ public:
                 for (const auto& state_to : target_set) {
                     for (const auto& post_state: eps_path_from[state_to]) {
                         transitions_[state_from][char_on].insert(post_state);
-                        debug_print("[add] " + state_from + " " + char_on + " > " + post_state);
+                        DEBUG_PRINT("[add] " + state_from + " " + char_on + " > " + post_state);
                     }
                 }
             }
@@ -329,12 +323,36 @@ public:
                 for (const auto& [char_on, target_set] : map) {
                     for (const auto& state_to : target_set) {
                         transitions_[pre_state][char_on].insert(state_to);
-                        debug_print("[add] " + pre_state + " " + char_on + " > " + state_to);
+                        DEBUG_PRINT("[add] " + pre_state + " " + char_on + " > " + state_to);
                     }
                 }
             }
         }
-        debug_print("");
+    }
+
+public:
+    NFAGenerator(std::istream& is)
+    : is_(is) {}
+
+    /* copying doesn't make sense */
+    NFAGenerator(const NFAGenerator&) = delete;
+
+    /**
+     * Writes a corresponding DFA specification to an output stream
+     * 
+     * @param os target output stream
+     * 
+     * @return whether the operation was successful
+     */
+    bool make_dfa_spec(std::ostream& os) {
+        parse_input();
+
+        /* No further error detection */
+        if (!valid_) {
+            return false;
+        }
+
+        eliminate_epsilon();
 
         /* Generate compound states*/
         std::queue<CompoundState*> q_pstate;

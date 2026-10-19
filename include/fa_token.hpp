@@ -13,7 +13,6 @@ enum class TokenType {
     SYMBOL,
     EPSILON,
     INVALID,
-    EMPTY,
     COMMENT
 };
 
@@ -26,7 +25,6 @@ constexpr std::string_view to_string(TokenType t) {
         case TokenType::SYMBOL:             return "SYMBOL";
         case TokenType::EPSILON:            return "EPSILON";
         case TokenType::INVALID:            return "INVALID";
-        case TokenType::EMPTY:              return "EMPTY";
         case TokenType::COMMENT:            return "COMMENT";
     }
 }
