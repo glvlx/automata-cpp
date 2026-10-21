@@ -4,6 +4,7 @@ target_link_libraries(test_headers INTERFACE internal_headers GTest::gtest_main)
 add_executable(test_faulty_dfa test_faulty_dfa.cpp)
 target_link_libraries(test_faulty_dfa PRIVATE test_headers)
 
+# Builds the generator of correct DFA
 add_executable(build_correct_dfa build_correct_dfa.cpp)
 target_link_libraries(build_correct_dfa PRIVATE test_headers)
 target_compile_definitions(build_correct_dfa PRIVATE NDEBUG)
@@ -17,6 +18,7 @@ file(GLOB_RECURSE CORRECT_DFA_SPECS
 set(CORRECT_DFA_SPEC_STAMP "${CMAKE_CURRENT_BINARY_DIR}/correct_dfa_specs.stamp")
 
 # Command tied to an output stamp (empty file generated on every run of the command)
+# The command itself is only run on dependency (here ${CORRECT_DFA_SPECS}) update
 add_custom_command(
     OUTPUT "${CORRECT_DFA_SPEC_STAMP}"
     COMMAND build_correct_dfa

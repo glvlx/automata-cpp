@@ -4,12 +4,12 @@
 namespace Automata {
 
 enum FAGenStatusCode {
-    OK = 0,
-    WRONG_NAME,
-    WRONG_FMT,
-    WRONG_STATE_NAME,
-    WRONG_SYMBOL,
-    NO_INIT
+    OK                  = 0,
+    WRONG_NAME          = 0b00001,
+    WRONG_FMT           = 0b00010,
+    WRONG_STATE_NAME    = 0b00100,
+    WRONG_SYMBOL        = 0b01000,
+    NO_INIT             = 0b10000,
 };
 
 } // namespace Automata

@@ -9,6 +9,7 @@
 #include "generated_dfa/accept_empty.hpp"
 #include "generated_dfa/accept_none.hpp"
 #include "generated_dfa/accept_even.hpp"
+#include "generated_dfa/whitespace_symbol.hpp"
 #include "generated_dfa/rwth.hpp"
 
 #define BOOL_TO_STR(x) ((x) ? "true" : "false")
@@ -65,6 +66,16 @@ TEST(CorrectDFATest, TestAcceptEven) {
         {"010", true},
         {"110", true}
     }, DFA_accept_even::init);
+}
+
+TEST(CorrectDFATest, TestWhitespaceSymbol) {
+    end_to_end({
+        {"", false},
+        {"12", false},
+        {"1 2", true},
+        {"1\t2", false},
+        {"122", false}
+    }, DFA_whitespace_symbol::init);
 }
 
 TEST(CorrectDFATest, TestRWTH) {

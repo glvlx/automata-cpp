@@ -26,8 +26,8 @@ class DFAGenerator {
     std::ostream& error_os_;
     int line_no_ = 1;
     bool valid_ = true;
-    FAGenStatusCode status_code_ = FAGenStatusCode::OK;
-    std::unordered_map<std::string, bool> states_; // bool indicates if the state is accepted
+    unsigned int status_code_ = FAGenStatusCode::OK;
+    std::unordered_map<std::string, bool> states_; // bool indicates if the state is accepting
     std::string start_state_name_;
     std::unordered_map<std::string, std::unordered_map<std::string, std::string>> transitions_;
     
@@ -56,14 +56,7 @@ class DFAGenerator {
         }
         
         /* STATE_NAME */
-        bool is_state_name = true;
-        for (auto c : tok) {
-            if (!(isalnum(c) || c == '_')) {
-                is_state_name = false;
-                break;
-            }
-        }
-        if (is_state_name) {
+        if (is_valid_state_name(tok)) {
             return TokenType::STATE_NAME;
         }
 
@@ -83,29 +76,23 @@ class DFAGenerator {
     /* Functions displaying errors and setting parser state to invalid. */
 
     void fmt_error(int line_no, std::string line, std::string reason = "") {
-        if (valid_) {
-            status_code_ = FAGenStatusCode::WRONG_FMT;
-            valid_ = false;
-        }
+        valid_ = false;
+        status_code_ |= FAGenStatusCode::WRONG_FMT;
         error_os_ << "Invalid DFA specification: wrong format"
                   << (reason.size() > 0 ? " - " + reason : "") << "\n"
                   << "[Line #" << line_no << "]: " << line << std::endl;
     }
 
-    void name_error(int line_no, std::string line, std::string name) {
-        if (valid_) {
-            status_code_ = FAGenStatusCode::WRONG_STATE_NAME;
-            valid_ = false;
-        }
-        error_os_ << "Invalid DFA specification: wrong state name \"" << name << "\"\n"
+    void state_name_error(int line_no, std::string line, std::string sname) {
+        valid_ = false;
+        status_code_ |= FAGenStatusCode::WRONG_STATE_NAME;
+        error_os_ << "Invalid DFA specification: wrong state name \"" << sname << "\"\n"
                   << "[Line #" << line_no << "]: " << line << std::endl;
     }
 
     void sym_error(int line_no, std::string line, std::string symbol) {
-        if (valid_) {
-            status_code_ = FAGenStatusCode::WRONG_SYMBOL;
-            valid_ = false;
-        }
+        valid_ = false;
+        status_code_ |= FAGenStatusCode::WRONG_SYMBOL;
         error_os_ << "Invalid DFA specification: wrong symbol " << symbol << "\n"
                   << "[Line #" << line_no << "]: " << line << std::endl;
     }
@@ -144,6 +131,20 @@ public:
             /* second pass: split tokens */
             std::string tok;
             while (aux >> tok) {
+                /* special case: whitespace character, next "token" necessary */
+                if (tok == "'") {
+                    aux >> tok;
+                    if (tok == "'") {
+                        tokens.push_back({
+                            TokenType::SYMBOL,
+                            "' '"
+                        });
+                    } else {
+                        fmt_error(line_no_, line, "invalid sequence [' " + tok + "]");
+                    }
+                    continue;
+                }
+                /* regular case */
                 TokenType toktype = get_token_type(tok);
                 if (toktype == TokenType::COMMENT) {
                     break;
@@ -176,23 +177,23 @@ public:
                 /* Start state declaration */
                 std::string state_name = tokens.back().token_;
                 if (!is_valid_state_name(state_name)) {
-                    name_error(line_no_, line, state_name);
+                    state_name_error(line_no_, line, state_name);
                     continue;
                 }
                 states_.try_emplace(state_name, false);
                 start_state_name_ = tokens.back().token_;
             } else if (tokens.front().type_ == TokenType::ACCEPT_MARKER) {
                 if (tokens.size() < 2) {
-                    fmt_error(line_no_, line, "no accepting states specified");
+                    fmt_error(line_no_, line, "no accepting states specified after +");
                     continue;
                 }
-                /* Accepted state declaration; state name(s) present */
+                /* Accepting state declaration; state name(s) present */
                 auto it = tokens.begin();
                 for (++it; it != tokens.end(); it++) {
                     Token token = *it;
                     std::string state_name = token.token_;
                     if (!is_valid_state_name(state_name)) {
-                        name_error(line_no_, line, state_name);
+                        state_name_error(line_no_, line, state_name);
                         continue;
                     }
                     states_.insert_or_assign(state_name, true);
@@ -204,23 +205,37 @@ public:
                    && tokens[2].type_ == TokenType::RARROW
                    && tokens[3].type_ == TokenType::STATE_NAME
                 )) {
+                    /* additional error detection */
+                    if (tokens.size() == 4) {
+                        if (tokens[0].type_ != TokenType::STATE_NAME) {
+                            state_name_error(line_no_, line, tokens[0].token_);
+                        }
+                        if (tokens[1].type_ != TokenType::SYMBOL) {
+                            sym_error(line_no_, line, tokens[1].token_);
+                        }
+                        if (tokens[3].type_ != TokenType::STATE_NAME) {
+                            state_name_error(line_no_, line, tokens[3].token_);
+                        }
+                    }
                     fmt_error(line_no_, line, "wrong transition format");
                     continue; // to the next line
                 }
                 std::string state_from = tokens[0].token_;
                 std::string state_to = tokens[3].token_;
+
+                /* currently should be always false: invalid names detected by get_token_type() */
                 if (!is_valid_state_name(state_from)) {
-                    name_error(line_no_, line, state_from);
+                    state_name_error(line_no_, line, state_from);
                 }
                 if (!is_valid_state_name(state_to)) {
-                    name_error(line_no_, line, state_to);
+                    state_name_error(line_no_, line, state_to);
                 }
-
-                std::string char_on = tokens[1].token_;
 
                 if (!valid_) {
                     continue;
                 }
+                std::string char_on = tokens[1].token_;
+
                 states_.try_emplace(state_from, false);
                 states_.try_emplace(state_to, false);
                 auto [it, inserted] = transitions_.try_emplace(state_from, 
@@ -237,10 +252,8 @@ public:
         std::cout.flush();
         #endif
         if (!is_valid_state_name(start_state_name_)) {
-            if (valid_) {
-                status_code_ = FAGenStatusCode::NO_INIT;
-                valid_ = false;
-            }
+            valid_ = false;
+            status_code_ |= FAGenStatusCode::NO_INIT;
             error_os_ << "Invalid DFA specification: no initial state (with a valid name)" << std::endl;
         }
     }
@@ -248,7 +261,7 @@ public:
     /**
      * Gets status code (without deserializing if OK)
      */
-    FAGenStatusCode get_status_code() {
+    unsigned int get_status_codes() {
         return status_code_;
     }
 
@@ -257,7 +270,7 @@ public:
      * 
      * @return status code
      */
-    FAGenStatusCode deserialize(std::ostream& os, std::string dfa_name) {
+    unsigned int deserialize(std::ostream& os, std::string dfa_name) {
         if (!is_valid_id(dfa_name)) {
             error_os_ << "Cannot generate code: DFA name \"" << dfa_name << "\" contains characters "
                       << "other than alphanumeric characters and underscore." << std::endl;
@@ -326,11 +339,11 @@ public:
     public:
         AutoDFA* const parent_; 
         const int id_;
-        bool is_accepted_ = false;
-        AutoDFAState(AutoDFA* const parent, bool is_accepted = false)
+        bool is_accepting_ = false;
+        AutoDFAState(AutoDFA* const parent, bool is_accepting = false)
         : parent_(parent)
         , id_(parent->max_id_++)
-        , is_accepted_(is_accepted) {
+        , is_accepting_(is_accepting) {
             std::stringstream dbgs;
             dbgs << "new state at " << this;
             DEBUG_PRINT(dbgs.str());
@@ -347,23 +360,23 @@ private:
     AutoDFAState* state_ = &states_.front();
 
 public:
-    AutoDFAState& get_start_state(bool is_accepted = false) {
+    AutoDFAState& get_start_state(bool is_accepting = false) {
         std::stringstream dbgs;
         dbgs << "new reference to " << &states_.front();
         DEBUG_PRINT(dbgs.str());
 
-        if (is_accepted) {
-            states_.front().is_accepted_ = true;
+        if (is_accepting) {
+            states_.front().is_accepting_ = true;
         }
 
         return states_.front();
     }
 
-    AutoDFAState& new_state(bool is_accepted = false, bool make_start_state = false) {
+    AutoDFAState& new_state(bool is_accepting = false, bool make_start_state = false) {
         if (make_start_state) {
-            states_.emplace_front(this, is_accepted);
+            states_.emplace_front(this, is_accepting);
         } else {
-            states_.emplace_back(this, is_accepted);
+            states_.emplace_back(this, is_accepting);
         }
         AutoDFAState& state = (make_start_state) ? states_.front() : states_.back();
         
@@ -409,7 +422,7 @@ public:
                 return false;
             }
         }
-        return state_->is_accepted_;
+        return state_->is_accepting_;
     }
 
     bool serialize(std::ostream& os) {
@@ -421,10 +434,10 @@ public:
         /* Terminal states */
         bool terminal_present = false;
         for (auto& state : states_) {
-            if (!state.is_accepted_) {
+            if (!state.is_accepting_) {
                 continue;
             }
-            // else: state accepted
+            // else: state accepting
             if (!terminal_present) {
                 // first occurrence
                 terminal_present = true;
