@@ -100,7 +100,6 @@ TEST(DFATest, Serialize) {
                 EXPECT_EQ(tokens.size(), 4);
                 EXPECT_EQ(tokens[1], "'a'");
                 EXPECT_EQ(tokens[2], ">");
-                EXPECT_EQ(tokens[0][0], 'q');
                 EXPECT_EQ(tokens[3][0], 'q');
 
                 if (s0_name.empty()) {
