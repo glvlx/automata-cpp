@@ -1,3 +1,7 @@
+/**
+ * Defines token types for Finite Automata specification files.
+ * Single-header for convenience of use.
+ */
 #ifndef FA_TOKEN_H_
 #define FA_TOKEN_H_
 
@@ -16,7 +20,7 @@ enum class TokenType {
     COMMENT
 };
 
-constexpr std::string_view to_string(TokenType t) {
+inline constexpr std::string_view to_string(TokenType t) {
     switch(t) {
         case TokenType::START_MARKER:       return "START_MARKER";
         case TokenType::ACCEPT_MARKER:      return "ACCEPT_MARKER";
@@ -29,7 +33,7 @@ constexpr std::string_view to_string(TokenType t) {
     }
 }
 
-std::ostream& operator<<(std::ostream& os, TokenType t) {
+inline std::ostream& operator<<(std::ostream& os, TokenType t) {
     return os << to_string(t);
 }
 
