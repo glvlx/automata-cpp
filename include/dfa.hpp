@@ -2,20 +2,11 @@
 #define DFA_H_
 
 #include <string>
-#include <memory>
-#include <unordered_map>
-#include <unordered_set>
-#include <set>
-#include <sstream>
 #include <list>
-
-#include "util.hpp"
+#include <unordered_map>
 
 namespace Automata {
 
-/**
- * 
- */
 class DFA {
 private:
     int max_id_ = 0;
@@ -26,14 +17,7 @@ public:
         DFA* const parent_; 
         const int id_;
         bool is_accepting_ = false;
-        DFAState(DFA* const parent, bool is_accepting = false)
-        : parent_(parent)
-        , id_(parent->max_id_++)
-        , is_accepting_(is_accepting) {
-            std::stringstream dbgs;
-            dbgs << "new state at " << this;
-            DEBUG_PRINT(dbgs.str());
-        }
+        DFAState(DFA* const parent, bool is_accepting = false);
     };
 
 private:

@@ -1,8 +1,23 @@
-#include <iostream>
-
 #include "dfa.hpp"
 
+#include <iostream>
+#include <memory>
+#include <unordered_set>
+#include <set>
+#include <sstream>
+
+#include "util.hpp"
+
 namespace Automata {
+
+DFA::DFAState::DFAState(DFA* const parent, bool is_accepting)
+: parent_(parent)
+, id_(parent->max_id_++)
+, is_accepting_(is_accepting) {
+    std::stringstream dbgs;
+    dbgs << "new state at " << this;
+    DEBUG_PRINT(dbgs.str());
+}
 
 DFA::DFAState& DFA::get_initial_state(bool make_accepting) {
     std::stringstream dbgs;
