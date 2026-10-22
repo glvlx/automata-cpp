@@ -2,11 +2,11 @@ add_library(test_headers INTERFACE)
 target_link_libraries(test_headers INTERFACE internal_headers GTest::gtest_main)
 
 add_executable(test_faulty_dfa test_faulty_dfa.cpp)
-target_link_libraries(test_faulty_dfa PRIVATE test_headers)
+target_link_libraries(test_faulty_dfa PRIVATE test_headers dfa)
 
 # Builds the generator of correct DFA
 add_executable(build_correct_dfa build_correct_dfa.cpp)
-target_link_libraries(build_correct_dfa PRIVATE test_headers)
+target_link_libraries(build_correct_dfa PRIVATE test_headers dfa)
 target_compile_definitions(build_correct_dfa PRIVATE NDEBUG)
 
 set(GENERATED_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/generated_dfa)
@@ -32,7 +32,7 @@ add_custom_target(generate_correct_dfa DEPENDS "${CORRECT_DFA_SPEC_STAMP}")
 
 add_executable(test_correct_dfa test_correct_dfa.cpp)
 add_dependencies(test_correct_dfa build_correct_dfa generate_correct_dfa)
-target_link_libraries(test_correct_dfa PRIVATE test_headers)
+target_link_libraries(test_correct_dfa PRIVATE test_headers dfa)
 target_include_directories(test_correct_dfa PRIVATE ${GENERATED_HEADER_DIR})
 
 # Needs to be added as a separate test to setup the fixture (and use as a prerequisite)

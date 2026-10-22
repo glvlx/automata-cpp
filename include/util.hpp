@@ -1,3 +1,7 @@
+/**
+ * Provides some useful functions that are shared between different modules.
+ * Single-header for convenience of use.
+ */
 #ifndef UTIL_H_
 #define UTIL_H_
 
@@ -24,9 +28,9 @@
 namespace Automata {
 
 /**
- * Checks whether name is a valid C++ identifier
+ * Checks whether the argument is a valid C++ identifier
  */
-bool is_valid_id(std::string name) {
+inline bool is_valid_id(std::string name) {
     if (name.size() == 0 || isdigit(name.front())) {
         return false;
     }
@@ -39,11 +43,11 @@ bool is_valid_id(std::string name) {
 }
 
 /**
- * Checks whether name is a valid state name
+ * Checks whether the argument is a valid state name
  * (an arbitrary sequence of ASCII digits, letters and _;
  * may also start with a digit)
  */
-bool is_valid_state_name(std::string state_name) {
+inline bool is_valid_state_name(std::string state_name) {
     if (state_name.size() == 0) {
         return false;
     }

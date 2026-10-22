@@ -2,6 +2,7 @@
 build/
 Release/
 Debug/
+doxy/
 
 generated_dfa/
 generated_dfa_specs/

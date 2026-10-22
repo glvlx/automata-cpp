@@ -28,27 +28,28 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang)$")
     endif()
 endif()
 
-# Libraries
-add_library(dfa src/dfa.cpp)
-target_include_directories(dfa PRIVATE include)
-
-add_library(nfa src/nfa.cpp)
-target_include_directories(nfa PRIVATE include)
-
-# Executables
-add_executable(playground main.cpp)
-target_include_directories(playground PRIVATE include)
-target_link_libraries(playground PRIVATE dfa nfa)
-
-add_executable(dfa-autogen autogen-driver.cpp)
-target_include_directories(dfa-autogen PRIVATE include)
-
-add_executable(nfa2dfa nfa2dfa.cpp)
-target_include_directories(nfa2dfa PRIVATE include)
-
 # Proxy for use of all headers and libraries in subdirectories (e.g. tests)
 add_library(internal_headers INTERFACE)
 target_include_directories(internal_headers INTERFACE include)
+
+# Libraries
+add_subdirectory(src)
+
+# add_library(dfa src/dfa.cpp)
+# target_include_directories(dfa PRIVATE include)
+
+# add_library(nfa src/nfa.cpp)
+# target_include_directories(nfa PRIVATE include)
+
+# Executables
+add_executable(playground main.cpp)
+target_link_libraries(playground PRIVATE internal_headers dfa nfa)
+
+add_executable(dfa-autogen autogen-driver.cpp)
+target_link_libraries(dfa-autogen PRIVATE internal_headers dfa)
+
+add_executable(nfa2dfa nfa2dfa.cpp)
+target_link_libraries(nfa2dfa PRIVATE internal_headers dfa)
 
 # Tests
 include(CTest)

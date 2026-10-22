@@ -14,8 +14,8 @@
 
 #define BOOL_TO_STR(x) ((x) ? "true" : "false")
 
-void end_to_end(const std::vector<std::pair<std::string, bool>>& test_cases, void (*init_function)(Automata::AutoDFA&)) {
-    Automata::AutoDFA sut;
+void end_to_end(const std::vector<std::pair<std::string, bool>>& test_cases, void (*init_function)(Automata::DFA&)) {
+    Automata::DFA sut;
     init_function(sut);
 
     for (const auto& [str, expected] : test_cases) {

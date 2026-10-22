@@ -6,61 +6,64 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <set>
+#include <sstream>
+#include <list>
+
+#include "util.hpp"
 
 namespace Automata {
 
-class DFAState {
-private:
-    static inline int next_id_ = 0; // so that invalid_dfa_state.id_ == 0
-
-public:
-    const int id_ = next_id_++;
-    bool is_invalid_ = false;
-    std::string name_;
-    std::unordered_map<std::string, DFAState*> transitions_;
-
-    DFAState() = delete;
-    DFAState(std::string name, bool is_invalid=false);
-    ~DFAState() = default;
-
-    /**
-     * If transition exists, returns a reference to the next state;
-     * otherwise, returns a reference to the shared global invalid state
-     */
-    const DFAState* transition(std::string symbol) const;
-};
-
-extern DFAState invalid_dfa_state;
-
-bool operator==(const DFAState& lhs, const DFAState& rhs);
-bool operator!=(const DFAState& lhs, const DFAState& rhs);
-
+/**
+ * 
+ */
 class DFA {
 private:
-    std::unordered_map<std::string, std::unique_ptr<DFAState>> states_;
-    const DFAState* start_state_ = &invalid_dfa_state;
-    std::unordered_set<const DFAState*> end_states_;
+    int max_id_ = 0;
+public:
+    class DFAState {
+        inline static int max_id_ = 0;
+    public:
+        DFA* const parent_; 
+        const int id_;
+        bool is_accepting_ = false;
+        DFAState(DFA* const parent, bool is_accepting = false)
+        : parent_(parent)
+        , id_(parent->max_id_++)
+        , is_accepting_(is_accepting) {
+            std::stringstream dbgs;
+            dbgs << "new state at " << this;
+            DEBUG_PRINT(dbgs.str());
+        }
+    };
 
-    // const DFAState* transition(std::string symbol, const DFAState* state);
+private:
+    std::list<DFAState> states_ {
+        DFAState(this)
+    };
+    std::unordered_map<DFAState*, std::unordered_map<char, DFAState*>> transitions_ = {
+        {&states_.front(), {}}
+    };
+    DFAState* state_ = &states_.front();
 
 public:
-    std::unordered_set<std::string> alphabet_ = {};
+    DFAState& get_start_state(bool is_accepting = false);
 
-    DFA(std::unordered_set<std::string> alphabet = {});
-    ~DFA() = default;
+    DFAState& new_state(bool is_accepting = false, bool make_start_state = false);
 
-    bool add_state(std::string state_name);
-    bool add_transition(std::string symbol, std::string state_from, std::string state_to);
-    bool set_start_state(std::string state);
-    bool add_end_state(std::string state);
+    /**
+     * Adds a transition. Can construct necessary entries automatically.
+     * 
+     * @return Whether a new transition has been created or not (= an old one replaced)
+     */
+    bool add_transition(DFAState& from, char on, DFAState& to);
 
-    void reset();
-    bool test(std::string word) const;
-    bool verify() const;
+    bool step(char symbol);
 
-    void minimize();
+    bool check(std::string in);
+
+    bool serialize(std::ostream& os);
 };
 
-} // namespace DFA
+} // namespace Automata
 
 #endif

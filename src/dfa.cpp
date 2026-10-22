@@ -1,130 +1,109 @@
-#include "dfa.hpp"
-
 #include <iostream>
+
+#include "dfa.hpp"
 
 namespace Automata {
 
-/*
- * DFAState
- */
+DFA::DFAState& DFA::get_start_state(bool is_accepting) {
+    std::stringstream dbgs;
+    dbgs << "new reference to " << &states_.front();
+    DEBUG_PRINT(dbgs.str());
 
-DFAState::DFAState(std::string name, bool is_invalid):
-    is_invalid_(is_invalid), name_(name)  {}
-
-DFAState invalid_dfa_state{"invalid", true};
-
-const DFAState* DFAState::transition(std::string symbol) const {
-    auto next_or_null_it = transitions_.find(symbol);
-    if (next_or_null_it == transitions_.cend()) {
-        return &invalid_dfa_state;
+    if (is_accepting) {
+        states_.front().is_accepting_ = true;
     }
+
+    return states_.front();
+}
+
+DFA::DFAState& DFA::new_state(bool is_accepting, bool make_start_state) {
+    if (make_start_state) {
+        states_.emplace_front(this, is_accepting);
+    } else {
+        states_.emplace_back(this, is_accepting);
+    }
+    DFAState& state = (make_start_state) ? states_.front() : states_.back();
     
-    return next_or_null_it->second;
+    std::stringstream dbgs;
+    dbgs << "new reference to " << &state;
+    DEBUG_PRINT(dbgs.str());
+
+    transitions_.emplace(&state, 
+                            std::unordered_map<char, DFAState*>());
+    return state;
 }
 
-bool operator==(const DFAState& lhs, const DFAState& rhs) {
-    return lhs.id_ == rhs.id_;
-}
-bool operator!=(const DFAState& lhs, const DFAState& rhs) {
-    return !(lhs == rhs);
-}
-
-/*
- * DFA
+/**
+ * Adds a transition. Can construct necessary entries automatically.
+ * 
+ * @return Whether a new transition has been created or not (= an old one replaced)
  */
-
-DFA::DFA(std::unordered_set<std::string> alphabet): 
-    alphabet_(alphabet) {}
-
-bool DFA::add_state(std::string state_name) {
-    bool success = states_.emplace(std::make_pair(state_name, std::make_unique<DFAState>(state_name))).second;
-    return success;
-}
-
-bool DFA::add_transition(std::string symbol, std::string state_from, std::string state_to) {
-    bool args_valid = alphabet_.count(symbol) > 0 && states_.count(state_from) > 0 && states_.count(state_to) > 0;
-    if (!args_valid) {
-        return false;
+bool DFA::add_transition(DFAState& from, char on, DFAState& to) {
+    auto [it_from, inserted_from] = transitions_.try_emplace(&from, 
+        std::unordered_map<char, DFAState*>()); // checks if key exists; if not, copies {}
+    auto [it_sym, inserted_sym] = it_from->second.insert_or_assign(on, &to);
+    if (!inserted_sym) {
+        std::cerr << "Warning: a transition has been replaced" << std::endl;
     }
-
-    DFAState* rstate_from = states_.at(state_from).get();
-    DFAState* rstate_to = states_.at(state_to).get();
-    bool success = rstate_from->transitions_.emplace(std::make_pair(symbol, rstate_to)).second;
-    return success;
+    return inserted_sym;
 }
 
-bool DFA::set_start_state(std::string state_name) {
-    bool args_valid = states_.count(state_name) > 0;
-    if (!args_valid) {
+bool DFA::step(char symbol) {
+    auto next_state_it = transitions_[state_].find(symbol);
+    if (next_state_it == transitions_[state_].end()) {
         return false;
+    } else {
+        state_ = next_state_it->second;
+        return true;
     }
-
-    start_state_ = states_.at(state_name).get();
-    return true;
 }
 
-bool DFA::add_end_state(std::string state_name) {
-    bool args_valid = states_.count(state_name) > 0;
-    if (!args_valid) {
-        return false;
-    }
+bool DFA::check(std::string in) {
+    state_ = &get_start_state();
 
-    bool success = end_states_.emplace(states_.at(state_name).get()).second;
-    return success;
-}
-
-void DFA::reset() {
-    alphabet_.clear();
-    states_.clear();
-    start_state_ = &invalid_dfa_state;
-    end_states_.clear();
-}
-
-bool DFA::test(std::string word) const {
-#if 0
-    // necessary?
-    if (!verify()) {
-        return false;
-    }
-#endif
-
-    const DFAState* pstate = start_state_;
-    std::string symbol;
-    for (auto c : word) {
-        symbol = c;
-        bool symbol_valid = alphabet_.count(symbol) > 0;
-        if (!symbol_valid) {
-            return false;
-        }
-
-        pstate = pstate->transition(symbol); // guaranteed to exist (kind of)
-        bool transition_exists = *pstate != invalid_dfa_state;
-        if (!transition_exists) {
+    for (char s : in) {
+        if (!step(s)) {
             return false;
         }
     }
-    return end_states_.count(pstate) > 0;
+    return state_->is_accepting_;
 }
 
-bool DFA::verify() const {
-    bool start_state_valid = states_.count(start_state_->name_) > 0;
-    bool end_states_valid = true;
-    for (const DFAState* rstate : end_states_) {
-        std::string state_name = rstate->name_;
-        if (states_.count(state_name) == 0) {
-            end_states_valid = false;
-            break;
+bool DFA::serialize(std::ostream& os) {
+    DFAState& start_state = get_start_state();
+
+    /* Start state */
+    os << "! q" << start_state.id_ << std::endl;
+
+    /* Terminal states */
+    bool terminal_present = false;
+    for (auto& state : states_) {
+        if (!state.is_accepting_) {
+            continue;
+        }
+        // else: state accepting
+        if (!terminal_present) {
+            // first occurrence
+            terminal_present = true;
+            os << "+ ";
+        } 
+        os << 'q' << state.id_ << ' ';
+    }
+    if (!terminal_present) {
+        std::cerr << "Unable to serialize the DFA, reason: no terminal states";
+        return false;
+    } else {
+        os << std::endl;
+    }
+
+    /* Transitions */
+    for (auto [from, map] : transitions_) {
+        for (auto [on, to] : map) {
+            os << "q" << from->id_ << " '" << on << "' > q" << to->id_ << std::endl;
         }
     }
-    if (!start_state_valid || !end_states_valid) {
-        return false;
-    }
+
     return true;
 }
 
-void DFA::minimize() {
-    // TODO
-    std::cerr << "Warning: DFA minimization hasn't been implemented yet" << std::endl;
-}
-
-} // namespace DFA
+} // namespace Automata
