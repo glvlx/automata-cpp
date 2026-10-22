@@ -14,7 +14,7 @@ unsigned int try_build(std::string dfa_filename, std::string dfa_name) {
     std::ifstream is(faulty_specs_path/dfa_filename);
     std::stringstream dummy_os;
     Automata::DFAGenerator dfa_generator(is);
-    EXPECT_EQ(dfa_generator.get_status_codes() == dfa_generator.deserialize(dummy_os, dfa_name), true);
+    EXPECT_EQ(dfa_generator.get_status_codes() == dfa_generator.write(dummy_os, dfa_name), true);
     return dfa_generator.get_status_codes();
 }
 

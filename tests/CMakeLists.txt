@@ -1,11 +1,14 @@
 add_library(test_headers INTERFACE)
 target_link_libraries(test_headers INTERFACE internal_headers GTest::gtest_main)
 
-add_executable(test_faulty_dfa test_faulty_dfa_generation.cpp)
+add_executable(test_dfa ${CMAKE_CURRENT_SOURCE_DIR}/test_dfa.cpp)
+target_link_libraries(test_dfa PRIVATE test_headers dfa)
+
+add_executable(test_faulty_dfa ${CMAKE_CURRENT_SOURCE_DIR}/test_faulty_dfa_generation.cpp)
 target_link_libraries(test_faulty_dfa PRIVATE test_headers dfa)
 
 # Builds the generator of correct DFA
-add_executable(build_correct_dfa build_correct_dfa.cpp)
+add_executable(build_correct_dfa ${CMAKE_CURRENT_SOURCE_DIR}/build_correct_dfa.cpp)
 target_link_libraries(build_correct_dfa PRIVATE test_headers dfa)
 target_compile_definitions(build_correct_dfa PRIVATE NDEBUG)
 
@@ -30,7 +33,7 @@ add_custom_command(
 # Target that "interfaces" the stamp file, is meant to be depended on to invoke the command above
 add_custom_target(generate_correct_dfa DEPENDS "${CORRECT_DFA_SPEC_STAMP}" build_correct_dfa)
 
-add_executable(test_correct_dfa test_correct_dfa_generation.cpp)
+add_executable(test_correct_dfa ${CMAKE_CURRENT_SOURCE_DIR}/test_correct_dfa_generation.cpp)
 add_dependencies(test_correct_dfa build_correct_dfa generate_correct_dfa)
 target_link_libraries(test_correct_dfa PRIVATE test_headers dfa)
 target_include_directories(test_correct_dfa PRIVATE ${GENERATED_HEADER_DIR})
@@ -50,3 +53,4 @@ gtest_discover_tests(test_correct_dfa
         FIXTURES_REQUIRED correct_dfa_env
 )
 gtest_discover_tests(test_faulty_dfa)
+gtest_discover_tests(test_dfa)

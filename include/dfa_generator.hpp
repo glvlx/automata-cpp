@@ -271,7 +271,7 @@ public:
      * 
      * @return status code
      */
-    unsigned int deserialize(std::ostream& os, std::string dfa_name) {
+    unsigned int write(std::ostream& os, std::string dfa_name) {
         if (!is_valid_id(dfa_name)) {
             error_os_ << "Cannot generate code: DFA name \"" << dfa_name << "\" contains characters "
                       << "other than alphanumeric characters and underscore." << std::endl;
@@ -293,7 +293,7 @@ public:
            << std::endl;
 
         /* add start state */
-        os << TAB << "auto& q" << start_state_name_ << " = dfa.get_start_state(" 
+        os << TAB << "auto& q" << start_state_name_ << " = dfa.get_initial_state(" 
             << (states_.at(start_state_name_) ? "true" : "false") << ");" << std::endl;
 
         os << std::endl;

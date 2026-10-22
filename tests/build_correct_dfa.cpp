@@ -25,7 +25,7 @@ int main() {
         std::ofstream os(target_path);
 
         Automata::DFAGenerator dfagen(is);
-        bool dfa_successful = dfagen.deserialize(os, dfa_name) == Automata::FAGenStatusCode::OK;
+        bool dfa_successful = dfagen.write(os, dfa_name) == Automata::FAGenStatusCode::OK;
         if (!dfa_successful) {
             task_successful = false;
             std::cerr << "Error: cannot deserialize \"" << dfa_name << "\"" << std::endl;

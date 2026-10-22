@@ -19,7 +19,7 @@ void end_to_end(const std::vector<std::pair<std::string, bool>>& test_cases, voi
     init_function(sut);
 
     for (const auto& [str, expected] : test_cases) {
-        EXPECT_EQ(sut.check(str), expected) << "(str = \"" << str << "\")";
+        EXPECT_EQ(sut.test(str), expected) << "(str = \"" << str << "\")";
     }
 }
 

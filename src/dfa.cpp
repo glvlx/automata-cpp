@@ -4,12 +4,12 @@
 
 namespace Automata {
 
-DFA::DFAState& DFA::get_start_state(bool is_accepting) {
+DFA::DFAState& DFA::get_initial_state(bool make_accepting) {
     std::stringstream dbgs;
     dbgs << "new reference to " << &states_.front();
     DEBUG_PRINT(dbgs.str());
 
-    if (is_accepting) {
+    if (make_accepting) {
         states_.front().is_accepting_ = true;
     }
 
@@ -33,11 +33,6 @@ DFA::DFAState& DFA::new_state(bool is_accepting, bool make_start_state) {
     return state;
 }
 
-/**
- * Adds a transition. Can construct necessary entries automatically.
- * 
- * @return Whether a new transition has been created or not (= an old one replaced)
- */
 bool DFA::add_transition(DFAState& from, char on, DFAState& to) {
     auto [it_from, inserted_from] = transitions_.try_emplace(&from, 
         std::unordered_map<char, DFAState*>()); // checks if key exists; if not, copies {}
@@ -58,8 +53,8 @@ bool DFA::step(char symbol) {
     }
 }
 
-bool DFA::check(std::string in) {
-    state_ = &get_start_state();
+bool DFA::test(std::string in) {
+    state_ = &get_initial_state();
 
     for (char s : in) {
         if (!step(s)) {
@@ -70,30 +65,28 @@ bool DFA::check(std::string in) {
 }
 
 bool DFA::serialize(std::ostream& os) {
-    DFAState& start_state = get_start_state();
+    DFAState& start_state = get_initial_state();
 
     /* Start state */
     os << "! q" << start_state.id_ << std::endl;
 
-    /* Terminal states */
-    bool terminal_present = false;
+    /* Accepting states */
+    bool accepting_state_present = false;
     for (auto& state : states_) {
         if (!state.is_accepting_) {
             continue;
         }
         // else: state accepting
-        if (!terminal_present) {
+        if (!accepting_state_present) {
             // first occurrence
-            terminal_present = true;
+            accepting_state_present = true;
             os << "+ ";
         } 
         os << 'q' << state.id_ << ' ';
     }
-    if (!terminal_present) {
-        std::cerr << "Unable to serialize the DFA, reason: no terminal states";
-        return false;
-    } else {
-        os << std::endl;
+    os << std::endl;
+    if (!accepting_state_present) {
+        std::cout << "Warning: DFA has no accepting states";
     }
 
     /* Transitions */
