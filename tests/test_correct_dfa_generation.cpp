@@ -3,6 +3,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 
+#include "dfa.hpp"
 #include "dfa_generator.hpp"
 
 #include "generated_dfa/bin_11.hpp"

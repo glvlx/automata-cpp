@@ -43,10 +43,10 @@ add_subdirectory(src)
 
 # Executables
 add_executable(playground main.cpp)
-target_link_libraries(playground PRIVATE internal_headers dfa nfa)
+target_link_libraries(playground PRIVATE internal_headers dfa nfa dfa_generator)
 
 add_executable(dfa-autogen autogen-driver.cpp)
-target_link_libraries(dfa-autogen PRIVATE internal_headers dfa)
+target_link_libraries(dfa-autogen PRIVATE internal_headers dfa dfa_generator)
 
 add_executable(nfa2dfa nfa2dfa.cpp)
 target_link_libraries(nfa2dfa PRIVATE internal_headers dfa)
