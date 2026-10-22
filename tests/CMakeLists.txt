@@ -1,7 +1,7 @@
 add_library(test_headers INTERFACE)
 target_link_libraries(test_headers INTERFACE internal_headers GTest::gtest_main)
 
-add_executable(test_faulty_dfa test_faulty_dfa.cpp)
+add_executable(test_faulty_dfa test_faulty_dfa_generation.cpp)
 target_link_libraries(test_faulty_dfa PRIVATE test_headers dfa)
 
 # Builds the generator of correct DFA
@@ -28,9 +28,9 @@ add_custom_command(
     VERBATIM
 )
 # Target that "interfaces" the stamp file, is meant to be depended on to invoke the command above
-add_custom_target(generate_correct_dfa DEPENDS "${CORRECT_DFA_SPEC_STAMP}")
+add_custom_target(generate_correct_dfa DEPENDS "${CORRECT_DFA_SPEC_STAMP}" build_correct_dfa)
 
-add_executable(test_correct_dfa test_correct_dfa.cpp)
+add_executable(test_correct_dfa test_correct_dfa_generation.cpp)
 add_dependencies(test_correct_dfa build_correct_dfa generate_correct_dfa)
 target_link_libraries(test_correct_dfa PRIVATE test_headers dfa)
 target_include_directories(test_correct_dfa PRIVATE ${GENERATED_HEADER_DIR})

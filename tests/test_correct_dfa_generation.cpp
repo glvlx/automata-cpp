@@ -23,7 +23,7 @@ void end_to_end(const std::vector<std::pair<std::string, bool>>& test_cases, voi
     }
 }
 
-TEST(CorrectDFATest, TestAcceptEmpty) {
+TEST(CorrectDFAGenerationTest, AcceptEmpty) {
     end_to_end({
         {"", true},
         {"0", false},
@@ -32,7 +32,7 @@ TEST(CorrectDFATest, TestAcceptEmpty) {
     }, DFA_accept_empty::init);
 }
 
-TEST(CorrectDFATest, TestAcceptNone) {
+TEST(CorrectDFAGenerationTest, AcceptNone) {
     end_to_end({
         {"", false},
         {"0", false},
@@ -41,7 +41,7 @@ TEST(CorrectDFATest, TestAcceptNone) {
     }, DFA_accept_none::init);
 }
 
-TEST(CorrectDFATest, TestBin11) {
+TEST(CorrectDFAGenerationTest, Bin11) {
     end_to_end({
         {"", false},
         {"0", false},
@@ -53,7 +53,7 @@ TEST(CorrectDFATest, TestBin11) {
     }, DFA_bin_11::init);
 }
 
-TEST(CorrectDFATest, TestAcceptEven) {
+TEST(CorrectDFAGenerationTest, AcceptEven) {
     end_to_end({
         {"", false},
         {"0", true},
@@ -68,7 +68,7 @@ TEST(CorrectDFATest, TestAcceptEven) {
     }, DFA_accept_even::init);
 }
 
-TEST(CorrectDFATest, TestWhitespaceSymbol) {
+TEST(CorrectDFAGenerationTest, WhitespaceSymbol) {
     end_to_end({
         {"", false},
         {"12", false},
@@ -78,7 +78,7 @@ TEST(CorrectDFATest, TestWhitespaceSymbol) {
     }, DFA_whitespace_symbol::init);
 }
 
-TEST(CorrectDFATest, TestRWTH) {
+TEST(CorrectDFAGenerationTest, AcceptRWTH) {
     end_to_end({
         {"", false},
         {"RWTH", true},

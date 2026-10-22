@@ -19,65 +19,65 @@ unsigned int try_build(std::string dfa_filename, std::string dfa_name) {
 }
 
 /******** Incomplete specification ********/
-TEST(FaultyDFATest, TestEmptyFile) {
+TEST(FaultyDFAGenerationTest, EmptyFile) {
     EXPECT_NE(try_build("empty_file.dfa", "empty_file")
                 & Automata::FAGenStatusCode::NO_INIT, 0);
 }
 
-TEST(FaultyDFATest, TestNoStartState) {
+TEST(FaultyDFAGenerationTest, NoStartState) {
     EXPECT_NE(try_build("no_start_state.dfa", "no_start_state") 
                 & Automata::FAGenStatusCode::NO_INIT, 0);
 }
 
 /************** Wrong format **************/
-TEST(FaultyDFATest, WrongStartStateLine) {
+TEST(FaultyDFAGenerationTest, WrongStartStateLine) {
     EXPECT_NE(try_build("wrong_start_state_line.dfa", "wrong_start_state_line") 
                 & Automata::FAGenStatusCode::WRONG_FMT, 0);
 }
 
-TEST(FaultyDFATest, TestWrongAcceptingStateLine) {
+TEST(FaultyDFAGenerationTest, WrongAcceptingStateLine) {
     EXPECT_NE(try_build("wrong_accepting_state_line.dfa", "wrong_accepting_state_line")
                 & Automata::FAGenStatusCode::WRONG_FMT, 0);
 }
 
-TEST(FaultyDFATest, MissingTransitionSymbol) {
+TEST(FaultyDFAGenerationTest, MissingTransitionSymbol) {
     EXPECT_NE(try_build("missing_transition_symbol.dfa", "missing_transition_symbol")
                 & Automata::FAGenStatusCode::WRONG_FMT, 0);
 }
 
-TEST(FaultyDFATest, MissingSourceStateName) {
+TEST(FaultyDFAGenerationTest, MissingSourceStateName) {
     EXPECT_NE(try_build("missing_source_state_name.dfa", "missing_source_state")
                 & Automata::FAGenStatusCode::WRONG_FMT, 0);
 }
 
-TEST(FaultyDFATest, MissingTargetStateName) {
+TEST(FaultyDFAGenerationTest, MissingTargetStateName) {
     EXPECT_NE(try_build("missing_target_state_name.dfa", "missing_target_state")
                 & Automata::FAGenStatusCode::WRONG_FMT, 0);
 }
 
-TEST(FaultyDFATest, TestInvalidToken) {
+TEST(FaultyDFAGenerationTest, InvalidToken) {
     EXPECT_NE(try_build("invalid_token.dfa", "invalid_token")
                 & Automata::FAGenStatusCode::WRONG_FMT, 0);
 }
 
 /*********** Invalid state name ***********/
-TEST(FaultyDFATest, TestInvalidInitialStateName) {
+TEST(FaultyDFAGenerationTest, InvalidInitialStateName) {
     EXPECT_NE(try_build("invalid_initial_state_name.dfa", "invalid_state_name")
                 & Automata::FAGenStatusCode::WRONG_STATE_NAME, 0);
 }
 
-TEST(FaultyDFATest, TestInvalidTransitionStateName) {
+TEST(FaultyDFAGenerationTest, InvalidTransitionStateName) {
     EXPECT_NE(try_build("invalid_transition_state_name.dfa", "invalid_state_name")
                 & Automata::FAGenStatusCode::WRONG_STATE_NAME, 0);
 }
 
 /************* Invalid symbol *************/
-TEST(FaultyDFATest, TestInvalidTransitionSymbol) {
+TEST(FaultyDFAGenerationTest, InvalidTransitionSymbol) {
     EXPECT_NE(try_build("invalid_transition_symbol.dfa", "invalid_transition_symbol")
                 & Automata::FAGenStatusCode::WRONG_SYMBOL, 0);
 }
 
-TEST(FaultyDFATest, EmptyTransitionSymbol) {
+TEST(FaultyDFAGenerationTest, EmptyTransitionSymbol) {
     EXPECT_NE(try_build("empty_transition_symbol.dfa", "empty_transition_symbol")
                 & Automata::FAGenStatusCode::WRONG_SYMBOL, 0);
 }
