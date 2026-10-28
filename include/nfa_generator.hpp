@@ -12,6 +12,7 @@
 
 #include "compound_state.hpp"
 #include "fa_token.hpp"
+#include "fagen_status_flag.hpp"
 #include "util.hpp"
 
 #define EPSILON_TOKEN "_"
@@ -26,6 +27,7 @@ class NFAGenerator final {
     std::istream& is_;
     int line_no_ = 1;
     bool valid_ = true;
+    unsigned int status_flags_ = FAGenStatusFlag::OK;
     std::unordered_map<std::string, bool> states_; // bool indicates if the state is accepting
     std::unordered_map<CompoundState, bool> compound_states_;
     std::string start_state_name_;
@@ -70,7 +72,7 @@ public:
      * 
      * @return whether the operation was successful
      */
-    bool write_dfa_spec(std::ostream& os);
+    unsigned int write_dfa_spec(std::ostream& os);
 };
 
 } // namespace Automata

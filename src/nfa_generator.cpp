@@ -39,21 +39,24 @@ TokenType NFAGenerator::get_token_type(std::string tok) {
 
 void NFAGenerator::fmt_error(int line_no, std::string line, std::string reason) {
     valid_ = false;
-    std::cerr << "Cannot deserialize NFA: wrong format"
+    status_flags_ |= FAGenStatusFlag::WRONG_FMT;
+    std::cerr << "Invalid NFA specification: wrong format"
                 << (reason.size() > 0 ? " - " + reason : "") << "\n"
-                << "Line #" << line_no << ": " << line << std::endl;
+                << "[Line #" << line_no << "]: " << line << std::endl;
 }
 
-void NFAGenerator::state_name_error(int line_no, std::string line, std::string name) {
+void NFAGenerator::state_name_error(int line_no, std::string line, std::string sname) {
     valid_ = false;
-    std::cerr << "Cannot deserialize NFA: wrong state name \"" << name << "\"\n"
-                << "Line #" << line_no << ": " << line << std::endl;
+    status_flags_ |= FAGenStatusFlag::WRONG_STATE_NAME;
+    std::cerr << "Invalid NFA specification: wrong state name \"" << sname << "\"\n"
+                << "[Line #" << line_no << "]: " << line << std::endl;
 }
 
 void NFAGenerator::sym_error(int line_no, std::string line, std::string symbol) {
     valid_ = false;
-    std::cerr << "Cannot deserialize NFA: wrong symbol " << symbol << "\n"
-                << "Line #" << line_no << ": " << line << std::endl;
+    status_flags_ |= FAGenStatusFlag::WRONG_SYMBOL;
+    std::cerr << "Invalid NFA specification: wrong symbol " << symbol << "\n"
+                << "[Line #" << line_no << "]: " << line << std::endl;
 }
 
 bool NFAGenerator::parse_input() {
@@ -194,7 +197,8 @@ bool NFAGenerator::parse_input() {
     }
     if (!is_valid_state_name(start_state_name_)) {
         valid_ = false;
-        std::cerr << "Cannot deserialize NFA: no initial state" << std::endl;
+        status_flags_ |= FAGenStatusFlag::NO_INIT;
+        std::cerr << "Invalid NFA specification: no initial state" << std::endl;
     }
 
     return valid_;
@@ -271,10 +275,10 @@ NFAGenerator::NFAGenerator(std::istream& is)
     }
 }
 
-bool NFAGenerator::write_dfa_spec(std::ostream& os) {
+unsigned int NFAGenerator::write_dfa_spec(std::ostream& os) {
     /* No further error detection */
-    if (!valid_) {
-        return false;
+    if (!valid_ || status_flags_ != FAGenStatusFlag::OK) {
+        return status_flags_;
     }
 
     /* Generate output */
@@ -297,7 +301,7 @@ bool NFAGenerator::write_dfa_spec(std::ostream& os) {
             os << state_from.hash() << ' ' << char_on << " > " << state_to.hash() << std::endl;
         }
     }
-    return valid_;
+    return FAGenStatusFlag::OK;
 }
 
 } // namespace Automata
