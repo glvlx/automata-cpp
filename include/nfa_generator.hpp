@@ -10,79 +10,18 @@
 #include <queue>
 #include <functional>
 
+#include "compound_state.hpp"
 #include "fa_token.hpp"
 #include "util.hpp"
 
 #define EPSILON_TOKEN "_"
 
+namespace Automata {
+
 /**
  * Does not create an actual NFA;
  * instead, automatically creates a DFA using power set construction
  */
-
-namespace Automata {
-
-/**
- * Represents states resulting from power set construction
- */
-class CompoundState {
-    std::unordered_set<std::string> simple_states_;
-    std::size_t hash_ = 0;
-
-    void update_hash(const std::string& new_state) {
-        /* needs to be order-independent because unordered_set */
-        hash_ += std::hash<std::string>{}(new_state);
-    }
-
-public:
-    CompoundState() = default;
-    explicit CompoundState(const std::unordered_set<std::string>& simple_states):
-            simple_states_(simple_states) {
-        for (const auto& state : simple_states) {
-            update_hash(state);
-        }
-    }
-    
-    void add_state(const std::string& state) {
-        auto [it, inserted] = simple_states_.insert(state);
-        if (inserted) {
-            update_hash(state);
-        }
-    }
-
-    void add_states(const std::unordered_set<std::string>& states) {
-        for (const auto& state : states) {
-            add_state(state);
-        }
-    }
-
-    const std::unordered_set<std::string>& get_primary_states() const noexcept {
-        return simple_states_;
-    }
-
-    /**
-     * Adds up hashes of the names of underlying "primary" states
-     */
-    std::size_t hash() const noexcept {
-        return hash_;
-    }
-
-    bool operator==(const CompoundState& other) const {
-        return simple_states_ == other.simple_states_;
-    }
-};
-
-} // namespace Automata
-
-template <>
-struct std::hash<Automata::CompoundState> {
-    std::size_t operator()(const Automata::CompoundState& s) const noexcept {
-        return s.hash();
-    }
-};
-
-namespace Automata {
-
 class NFAGenerator final {
     std::istream& is_;
     int line_no_ = 1;

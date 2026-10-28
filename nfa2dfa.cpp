@@ -4,6 +4,7 @@
 #include <sysexits.h>
 #include <argp.h>
 
+#include "compound_state.hpp"
 #include "nfa_generator.hpp"
 
 struct Args {
