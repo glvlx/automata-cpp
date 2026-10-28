@@ -8,6 +8,8 @@
 #include "util.hpp"
 
 struct Args {
+    bool ifname_specified_ = false;
+    bool ofname_specified_ = false;
     std::string dfaname_;
     std::string ifname_;
     std::string ofname_;
@@ -57,10 +59,16 @@ error_t arg_parser(int key, char* arg, struct argp_state* state) {
             pargs->dfaname_ = arg;
             break;
         case 'i':
-            pargs->ifname_ = (arg) ? arg : "";
+            if (arg) {
+                pargs->ifname_ = arg;
+                pargs->ifname_specified_ = true;
+            }
             break;
         case 'o':
-            pargs->ofname_ = (arg) ? arg : "";
+            if (arg) {
+                pargs->ofname_ = arg;
+                pargs->ofname_specified_ = true;
+            }
             break;
         case ARGP_KEY_END: // check if positional provided
             if (state->arg_num < 1) {
@@ -80,7 +88,9 @@ argp argp_instance {
     /*.doc      =*/ "Generates a C++ header from the provided DFA specification.\n"
         "\n"
         "The generated header provides \"init(Automata::DFA&)\" inside namespace \"DFA_[DFANAME]\" "
-        "that can be used to initialize a DFA according to the specification."
+        "that can be used to initialize a DFA according to the specification.\n"
+        "\n"
+        "The generated header itself does not include Automata::DFA."
         "\v"
         "Syntax:\n"
         "Each line has to be in one of the following forms:\n"
@@ -88,8 +98,8 @@ argp argp_instance {
         "  STATE_FROM 'CHAR_ON' > STATE_TO\n"
         "- Terminal state(s) definition:\n"
         "  + STATE_NAME [STATE_NAMES...]\n"
-        "  - multiple terminal definition lines are possible, the resulting set"
-        "    is a union of all encountered definitions\n"
+        "  - multiple terminal definition lines are possible, the resulting set "
+        "is a union of all encountered definitions\n"
         "- Initial state definition:\n"
         "  ! STATE_NAME\n"
         "  - each start state definition overwrites all previous definitions.\n"
@@ -103,30 +113,42 @@ int main(int argc, char* argv[]) {
     Args parsed_args;
     argp_parse(&argp_instance, argc, argv, 0, nullptr, &parsed_args);
 
-    if (parsed_args.ofname_ == "") {
+    if (!parsed_args.ofname_specified_) {
         parsed_args.ofname_ = "_dfa_" + parsed_args.ifname_ + ".hpp";
+    }
+    if (!parsed_args.ifname_specified_) {
+        parsed_args.ifname_ = parsed_args.dfaname_;
     }
 
     std::string dfaname(parsed_args.dfaname_);
     if (!Automata::is_valid_id(dfaname)) {
-        std::cout << "Error: DFA name \"" << dfaname << "\" is not a valid C++ identifier" << std::endl;
+        std::cout << "Error: DFA name \"" << dfaname << "\" is not a valid C++ identifier." << std::endl;
         return EX_CONFIG;
     }
 
     std::ifstream is(parsed_args.ifname_);
     if (!is) {
-        std::cout << "Error: cannot open \"" << parsed_args.ifname_ << "\"" << std::endl;
+        std::cout << "Error: cannot open \"" << parsed_args.ifname_ << "\"." << std::endl;
+        if (!parsed_args.ifname_specified_) {
+            std::cout << "If specification file name is different than DFA name, pass it via -i." << std::endl;
+        }
         return EX_NOINPUT;
     }
 
     std::ofstream os(parsed_args.ofname_);
     if (!os) {
-        std::cout << "Error: cannot create \"" << parsed_args.ofname_ << "\"" << std::endl;
+        std::cout << "Error: cannot create \"" << parsed_args.ofname_ << "\"." << std::endl;
         return EX_CANTCREAT;
     }
 
     Automata::DFAGenerator dfagen(is);
-    dfagen.write(os, dfaname);
+    unsigned int flags = dfagen.write(os, dfaname);
+    if (flags == Automata::FAGenStatusCode::OK) {
+        std::cout << "DFA \"" << dfaname << "\" successfully generated to \"" 
+                  << parsed_args.ofname_ << "\"." << std::endl;
+    } else {
+        std::cout << "Generation of DFA \"" << dfaname << "\" failed." << std::endl;
+    }
 
     return 0;
 }
