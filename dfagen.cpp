@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
 
     Automata::DFAGenerator dfagen(is);
     unsigned int flags = dfagen.write(os, dfaname);
-    if (flags == Automata::FAGenStatusCode::OK) {
+    if (flags == Automata::FAGenStatusFlag::OK) {
         std::cout << "DFA \"" << dfaname << "\" successfully generated to \"" 
                   << parsed_args.ofname_ << "\"." << std::endl;
     } else {

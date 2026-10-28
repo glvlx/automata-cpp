@@ -40,7 +40,7 @@ TokenType DFAGenerator::get_token_type(std::string tok) {
 
 void DFAGenerator::fmt_error(int line_no, std::string line, std::string reason) {
     valid_ = false;
-    status_flags_ |= FAGenStatusCode::WRONG_FMT;
+    status_flags_ |= FAGenStatusFlag::WRONG_FMT;
     error_os_ << "Invalid DFA specification: wrong format"
                 << (reason.size() > 0 ? " - " + reason : "") << "\n"
                 << "[Line #" << line_no << "]: " << line << std::endl;
@@ -48,14 +48,14 @@ void DFAGenerator::fmt_error(int line_no, std::string line, std::string reason) 
 
 void DFAGenerator::state_name_error(int line_no, std::string line, std::string sname) {
     valid_ = false;
-    status_flags_ |= FAGenStatusCode::WRONG_STATE_NAME;
+    status_flags_ |= FAGenStatusFlag::WRONG_STATE_NAME;
     error_os_ << "Invalid DFA specification: wrong state name \"" << sname << "\"\n"
                 << "[Line #" << line_no << "]: " << line << std::endl;
 }
 
 void DFAGenerator::sym_error(int line_no, std::string line, std::string symbol) {
     valid_ = false;
-    status_flags_ |= FAGenStatusCode::WRONG_SYMBOL;
+    status_flags_ |= FAGenStatusFlag::WRONG_SYMBOL;
     error_os_ << "Invalid DFA specification: wrong symbol " << symbol << "\n"
                 << "[Line #" << line_no << "]: " << line << std::endl;
 }
@@ -212,7 +212,7 @@ DFAGenerator::DFAGenerator(std::istream& is, std::ostream& error_os)
     #endif
     if (!is_valid_state_name(start_state_name_)) {
         valid_ = false;
-        status_flags_ |= FAGenStatusCode::NO_INIT;
+        status_flags_ |= FAGenStatusFlag::NO_INIT;
         error_os_ << "Invalid DFA specification: no initial state (with a valid name)" << std::endl;
     }
 }
@@ -221,7 +221,7 @@ unsigned int DFAGenerator::write(std::ostream& os, std::string dfa_name) {
     if (!is_valid_id(dfa_name)) {
         error_os_ << "Cannot generate code: DFA name \"" << dfa_name << "\" contains characters "
                     << "other than alphanumeric characters and underscore." << std::endl;
-        return FAGenStatusCode::WRONG_NAME;
+        return FAGenStatusFlag::WRONG_NAME;
     }
 
     if (!valid_) {
@@ -270,7 +270,7 @@ unsigned int DFAGenerator::write(std::ostream& os, std::string dfa_name) {
         << "} // namespace DFA_" << dfa_name << "\n"
         << "\n"
         << "#endif" << std::endl;
-    return FAGenStatusCode::OK;
+    return FAGenStatusFlag::OK;
 }
 
 } // namespace Automata

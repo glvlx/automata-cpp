@@ -3,7 +3,7 @@
 
 namespace Automata {
 
-enum FAGenStatusCode {
+enum FAGenStatusFlag {
     OK                  = 0,
     WRONG_NAME          = 0b00001,
     WRONG_FMT           = 0b00010,

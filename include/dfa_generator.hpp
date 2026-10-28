@@ -20,7 +20,7 @@ class DFAGenerator {
     std::ostream& error_os_;
     int line_no_ = 1;
     bool valid_ = true;
-    unsigned int status_flags_ = FAGenStatusCode::OK;
+    unsigned int status_flags_ = FAGenStatusFlag::OK;
     std::unordered_map<std::string, bool> states_; // bool indicates if the state is accepting
     std::string start_state_name_;
     std::unordered_map<std::string, std::unordered_map<std::string, std::string>> transitions_;
