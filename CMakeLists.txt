@@ -42,7 +42,7 @@ add_executable(playground playground.cpp)
 target_link_libraries(playground PRIVATE internal_headers dfa nfa dfa_generator)
 
 add_executable(nfa2dfa nfa2dfa.cpp)
-target_link_libraries(nfa2dfa PRIVATE internal_headers dfa compound_state)
+target_link_libraries(nfa2dfa PRIVATE internal_headers dfa nfa_generator)
 
 add_executable(dfagen dfagen.cpp)
 target_link_libraries(dfagen PRIVATE internal_headers dfa_generator)

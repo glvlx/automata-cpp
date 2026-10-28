@@ -9,3 +9,7 @@ target_link_libraries(nfa PRIVATE internal_headers)
 
 add_library(compound_state ${CMAKE_CURRENT_SOURCE_DIR}/compound_state.cpp)
 target_link_libraries(compound_state PRIVATE internal_headers)
+
+add_library(nfa_generator ${CMAKE_CURRENT_SOURCE_DIR}/nfa_generator.cpp)
+target_link_libraries(nfa_generator PRIVATE internal_headers
+                                    INTERFACE compound_state)

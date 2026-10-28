@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     }
 
     Automata::NFAGenerator nfagen(is);
-    nfagen.make_dfa_spec(os);
+    nfagen.write_dfa_spec(os);
 
     return 0;
 }
