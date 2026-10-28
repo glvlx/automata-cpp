@@ -1,5 +1,5 @@
-#ifndef FAGEN_STATUS_CODE_H_
-#define FAGEN_STATUS_CODE_H_
+#ifndef FAGEN_STATUS_FLAG_H_
+#define FAGEN_STATUS_FLAG_H_
 
 namespace Automata {
 

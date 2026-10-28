@@ -4,7 +4,7 @@
 #include <string>
 
 #include "dfa_generator.hpp"
-#include "fagen_status_code.hpp"
+#include "fagen_status_flag.hpp"
 
 int main() {
     const std::filesystem::path source_path(__FILE__);

@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include "dfa_generator.hpp"
-#include "fagen_status_code.hpp"
+#include "fagen_status_flag.hpp"
 
 const std::filesystem::path source_path(__FILE__);
 const auto faulty_specs_path(source_path.parent_path()/"faulty_dfa_specs");

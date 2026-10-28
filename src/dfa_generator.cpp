@@ -8,7 +8,7 @@
 
 #include "util.hpp"
 #include "fa_token.hpp"
-#include "fagen_status_code.hpp"
+#include "fagen_status_flag.hpp"
 
 namespace Automata {
 
