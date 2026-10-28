@@ -1,10 +1,9 @@
 #include "dfa.hpp"
 
 #include <iostream>
-#include <memory>
-#include <unordered_set>
-#include <set>
+#include <string>
 #include <sstream>
+#include <unordered_map>
 
 #include "util.hpp"
 

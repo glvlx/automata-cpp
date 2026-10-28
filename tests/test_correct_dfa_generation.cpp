@@ -1,10 +1,9 @@
-#include <iostream>
+#include <gtest/gtest.h>
+#include <string>
 #include <utility>
 #include <vector>
-#include <gtest/gtest.h>
 
 #include "dfa.hpp"
-#include "dfa_generator.hpp"
 
 #include "generated_dfa/bin_11.hpp"
 #include "generated_dfa/accept_empty.hpp"

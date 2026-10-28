@@ -1,12 +1,14 @@
 #include "dfa_generator.hpp"
 
-#include <list>
 #include <vector>
 #include <sstream>
-#include <stdexcept>
-#include <string_view>
+#include <string>
+#include <iostream>
+#include <unordered_map>
 
 #include "util.hpp"
+#include "fa_token.hpp"
+#include "fagen_status_code.hpp"
 
 namespace Automata {
 

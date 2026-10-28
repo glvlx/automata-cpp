@@ -1,8 +1,8 @@
-#include <iostream>
+#include <gtest/gtest.h>
+#include <string>
 #include <fstream>
 #include <filesystem>
 #include <sstream>
-#include <gtest/gtest.h>
 
 #include "dfa_generator.hpp"
 #include "fagen_status_code.hpp"

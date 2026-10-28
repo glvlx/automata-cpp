@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
+#include <iostream>
+#include <string>
 #include <sstream>
+#include <vector>
 
 #include "dfa.hpp"
 

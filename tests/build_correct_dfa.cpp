@@ -1,10 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-#include <sysexits.h>
-#include <gtest/gtest.h>
+#include <string>
 
 #include "dfa_generator.hpp"
+#include "fagen_status_code.hpp"
 
 int main() {
     const std::filesystem::path source_path(__FILE__);
