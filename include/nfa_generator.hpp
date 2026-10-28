@@ -144,7 +144,7 @@ class NFAGenerator final {
                   << "Line #" << line_no << ": " << line << std::endl;
     }
 
-    void name_error(int line_no, std::string line, std::string name) {
+    void state_name_error(int line_no, std::string line, std::string name) {
         valid_ = false;
         std::cerr << "Cannot deserialize NFA: wrong state name \"" << name << "\"\n"
                   << "Line #" << line_no << ": " << line << std::endl;
@@ -208,7 +208,7 @@ class NFAGenerator final {
                 /* start state declaration */
                 std::string state_name = tokens.back().token_;
                 if (!is_valid_state_name(state_name)) {
-                    name_error(line_no_, line, state_name);
+                    state_name_error(line_no_, line, state_name);
                     continue;
                 }
                 states_.try_emplace(state_name, false);
@@ -224,7 +224,7 @@ class NFAGenerator final {
                     Token token = *it;
                     std::string state_name = token.token_;
                     if (!is_valid_state_name(state_name)) {
-                        name_error(line_no_, line, state_name);
+                        state_name_error(line_no_, line, state_name);
                         continue;
                     }
                     states_.insert_or_assign(state_name, true);
@@ -243,7 +243,7 @@ class NFAGenerator final {
                 }
                 std::string state_from = tokens[0].token_;
                 if (!is_valid_state_name(state_from)) {
-                    name_error(line_no_, line, state_from);
+                    state_name_error(line_no_, line, state_from);
                 }
                 std::string char_on = tokens[1].token_;
 
