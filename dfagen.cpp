@@ -5,6 +5,7 @@
 #include <argp.h>
 
 #include "dfa_generator.hpp"
+#include "fagen_status_code.hpp"
 #include "util.hpp"
 
 struct Args {
