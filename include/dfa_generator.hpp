@@ -20,7 +20,7 @@ class DFAGenerator {
     std::ostream& error_os_;
     int line_no_ = 1;
     bool valid_ = true;
-    unsigned int status_code_ = FAGenStatusCode::OK;
+    unsigned int status_flags_ = FAGenStatusCode::OK;
     std::unordered_map<std::string, bool> states_; // bool indicates if the state is accepting
     std::string start_state_name_;
     std::unordered_map<std::string, std::unordered_map<std::string, std::string>> transitions_;
@@ -57,7 +57,10 @@ public:
      */
     DFAGenerator(std::istream& is, std::ostream& error_os = std::cerr);
 
-    inline unsigned int get_status_codes() { return status_code_; }
+    /**
+     * @return a bit field containing all status flags
+     */
+    inline unsigned int get_status_flags() { return status_flags_; }
 
     /**
      * Writes C++ code corresponding to the specification to an ostream.
