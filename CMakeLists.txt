@@ -51,6 +51,9 @@ target_link_libraries(dfa-autogen PRIVATE internal_headers dfa dfa_generator)
 add_executable(nfa2dfa nfa2dfa.cpp)
 target_link_libraries(nfa2dfa PRIVATE internal_headers dfa)
 
+add_executable(dfagen dfagen.cpp)
+target_link_libraries(dfagen PRIVATE internal_headers dfa_generator)
+
 # Tests
 include(CTest)
 
