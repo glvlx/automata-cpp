@@ -12,7 +12,12 @@ add_executable(build_correct_dfa ${CMAKE_CURRENT_SOURCE_DIR}/build_correct_dfa.c
 target_link_libraries(build_correct_dfa PRIVATE test_headers dfa dfa_generator)
 target_compile_definitions(build_correct_dfa PRIVATE NDEBUG)
 
-set(GENERATED_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/generated_dfa)
+add_executable(build_correct_dfa_as_nfa ${CMAKE_CURRENT_SOURCE_DIR}/build_correct_dfa_as_nfa.cpp)
+target_link_libraries(build_correct_dfa_as_nfa PRIVATE test_headers nfa_generator)
+target_compile_definitions(build_correct_dfa_as_nfa PRIVATE NDEBUG)
+
+set(GENERATED_DFA_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/generated_dfa)
+set(GENERATED_DFA_SPEC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/generated_dfa_specs)
 
 # List of correct dfa specs so that they can be tracked
 file(GLOB_RECURSE CORRECT_DFA_SPECS 
@@ -24,19 +29,21 @@ set(CORRECT_DFA_SPEC_STAMP "${CMAKE_CURRENT_BINARY_DIR}/correct_dfa_specs.stamp"
 # The command itself is only run on dependency (here ${CORRECT_DFA_SPECS}) update
 add_custom_command(
     OUTPUT "${CORRECT_DFA_SPEC_STAMP}"
+    COMMAND build_correct_dfa_as_nfa
     COMMAND build_correct_dfa
     COMMAND ${CMAKE_COMMAND} -E touch "${CORRECT_DFA_SPEC_STAMP}"
-    DEPENDS ${CORRECT_DFA_SPECS}
+    DEPENDS ${CORRECT_DFA_SPECS} build_correct_dfa build_correct_dfa_as_nfa
     COMMENT "Running build_correct_dfa..."
     VERBATIM
 )
+
 # Target that "interfaces" the stamp file, is meant to be depended on to invoke the command above
-add_custom_target(generate_correct_dfa DEPENDS "${CORRECT_DFA_SPEC_STAMP}" build_correct_dfa)
+add_custom_target(generate_correct_dfa DEPENDS "${CORRECT_DFA_SPEC_STAMP}")
 
 add_executable(test_correct_dfa ${CMAKE_CURRENT_SOURCE_DIR}/test_correct_dfa_generation.cpp)
 add_dependencies(test_correct_dfa build_correct_dfa generate_correct_dfa)
 target_link_libraries(test_correct_dfa PRIVATE test_headers dfa)
-target_include_directories(test_correct_dfa PRIVATE ${GENERATED_HEADER_DIR})
+target_include_directories(test_correct_dfa PRIVATE ${GENERATED_DFA_HEADER_DIR})
 
 # Needs to be added as a separate test to setup the fixture (and use as a prerequisite)
 add_test(
