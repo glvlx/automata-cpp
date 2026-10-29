@@ -78,6 +78,20 @@ bool NFAGenerator::parse_input() {
         /* second pass: split tokens */
         std::string tok;
         while (aux >> tok) {
+            /* special case: whitespace character, next "token" necessary */
+            if (tok == "'") {
+                aux >> tok;
+                if (tok == "'") {
+                    tokens.push_back({
+                        TokenType::SYMBOL,
+                        "' '"
+                    });
+                } else {
+                    fmt_error(line_no_, line, "invalid sequence [' " + tok + "]");
+                }
+                continue;
+            }
+            /* regular case */
             TokenType toktype = get_token_type(tok);
             if (toktype == TokenType::COMMENT) {
                 break;
@@ -231,17 +245,7 @@ void NFAGenerator::eliminate_epsilon() {
     }
 }
 
-NFAGenerator::NFAGenerator(std::istream& is)
-        : is_(is) {
-    parse_input();
-    
-    /* No further error detection */
-    if (!valid_) {
-        return;
-    }
-
-    eliminate_epsilon();
-
+void NFAGenerator::construct_power_set() {
     /* Generate compound states*/
     std::queue<CompoundState*> q_pstate;
     compound_start_state_.add_state(start_state_name_);
@@ -273,6 +277,20 @@ NFAGenerator::NFAGenerator(std::istream& is)
             }
         }
     }
+}
+
+NFAGenerator::NFAGenerator(std::istream& is)
+        : is_(is) {
+    parse_input();
+    
+    /* No further error detection */
+    if (!valid_) {
+        return;
+    }
+
+    eliminate_epsilon();
+
+    construct_power_set();
 }
 
 unsigned int NFAGenerator::write_dfa_spec(std::ostream& os) {

@@ -58,6 +58,11 @@ class NFAGenerator final {
      */
     void eliminate_epsilon();
 
+    /**
+     * @pre epsilon transitions eliminated
+     */
+    void construct_power_set();
+
 public:
 
     explicit NFAGenerator(std::istream& is);
