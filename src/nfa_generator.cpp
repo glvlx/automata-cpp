@@ -181,7 +181,7 @@ bool NFAGenerator::parse_input() {
                 if (char_on == EPSILON_TOKEN) {
                     eps_path_from[state_from].insert(state_to);
                     eps_path_to[state_to].insert(state_from);
-                    
+
                     for (const auto& pre_state : eps_path_to[state_from]) {
                         eps_path_from[pre_state].insert(state_to);
                         eps_path_to[state_to].insert(pre_state);
@@ -255,9 +255,8 @@ void NFAGenerator::construct_power_set() {
     compound_start_state_.add_state(start_state_name_);
     q_pstate.push(&compound_start_state_);
 
-    CompoundState s_from;
     while (!q_pstate.empty()) {
-        s_from = *q_pstate.front();
+        CompoundState s_from = *q_pstate.front();
         q_pstate.pop();
 
         auto [it, inserted] = compound_states_.try_emplace(s_from, false);

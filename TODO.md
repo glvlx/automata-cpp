@@ -7,4 +7,3 @@
 
 ## NFAGenerator:
 - [x] fix epsilon path calculation in parse_input()
-- [ ] fix setting state to accepting (@ nfa_abstar)
