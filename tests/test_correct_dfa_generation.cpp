@@ -12,12 +12,12 @@
 #include "generated_dfa/whitespace_symbol.hpp"
 #include "generated_dfa/rwth.hpp"
 
-#include "generated_nfa/nfa_bin_11.hpp"
-#include "generated_nfa/nfa_accept_empty.hpp"
-#include "generated_nfa/nfa_accept_none.hpp"
-#include "generated_nfa/nfa_accept_even.hpp"
-#include "generated_nfa/nfa_whitespace_symbol.hpp"
-#include "generated_nfa/nfa_rwth.hpp"
+#include "generated_nfa/fnfa_bin_11.hpp"
+#include "generated_nfa/fnfa_accept_empty.hpp"
+#include "generated_nfa/fnfa_accept_none.hpp"
+#include "generated_nfa/fnfa_accept_even.hpp"
+#include "generated_nfa/fnfa_whitespace_symbol.hpp"
+#include "generated_nfa/fnfa_rwth.hpp"
 
 #define BOOL_TO_STR(x) ((x) ? "true" : "false")
 
@@ -30,6 +30,7 @@ void end_to_end(const std::vector<std::pair<std::string, bool>>& test_cases, voi
     }
 }
 
+/********** DFA as DFA + as NFA **********/
 void test_AcceptEmpty(void (*init_function)(Automata::DFA&)) {
     end_to_end({
         {"", true},
@@ -39,12 +40,13 @@ void test_AcceptEmpty(void (*init_function)(Automata::DFA&)) {
     }, init_function);
 }
 
+
 TEST(CorrectDFAGenerationTest, AcceptEmpty) {
     test_AcceptEmpty(DFA_accept_empty::init);
 }
 
 TEST(CorrectNFAasDFATest, AcceptEmpty) {
-    test_AcceptEmpty(DFA_nfa_accept_empty::init);
+    test_AcceptEmpty(DFA_fnfa_accept_empty::init);
 }
 
 void test_AcceptNone(void (*init_function)(Automata::DFA&)) {
@@ -61,7 +63,7 @@ TEST(CorrectDFAGenerationTest, AcceptNone) {
 }
 
 TEST(CorrectNFAasDFATest, AcceptNone) {
-    test_AcceptNone(DFA_nfa_accept_none::init);
+    test_AcceptNone(DFA_fnfa_accept_none::init);
 }
 
 void test_Bin11(void (*init_function)(Automata::DFA&)) {
@@ -81,7 +83,7 @@ TEST(CorrectDFAGenerationTest, Bin11) {
 }
 
 TEST(CorrectNFAasDFATest, Bin11) {
-    test_Bin11(DFA_nfa_bin_11::init);
+    test_Bin11(DFA_fnfa_bin_11::init);
 }
 
 void test_AcceptEven(void (*init_function)(Automata::DFA&)) {
@@ -104,7 +106,7 @@ TEST(CorrectDFAGenerationTest, AcceptEven) {
 }
 
 TEST(CorrectNFAasDFATest, AcceptEven) {
-    test_AcceptEven(DFA_nfa_accept_even::init);
+    test_AcceptEven(DFA_fnfa_accept_even::init);
 }
 
 void test_WhitespaceSymbol(void (*init_function)(Automata::DFA&)) {
@@ -122,7 +124,7 @@ TEST(CorrectDFAGenerationTest, WhitespaceSymbol) {
 }
 
 TEST(CorrectNFAasDFATest, WhitespaceSymbol) {
-    test_WhitespaceSymbol(DFA_nfa_whitespace_symbol::init);
+    test_WhitespaceSymbol(DFA_fnfa_whitespace_symbol::init);
 }
 
 void test_AcceptRWTH(void (*init_function)(Automata::DFA&)) {
@@ -139,5 +141,7 @@ TEST(CorrectDFAGenerationTest, AcceptRWTH) {
 }
 
 TEST(CorrectNFAasDFATest, AcceptRWTH) {
-    test_AcceptRWTH(DFA_nfa_rwth::init);
+    test_AcceptRWTH(DFA_fnfa_rwth::init);
 }
+
+/********** DFA from real NFA **********/

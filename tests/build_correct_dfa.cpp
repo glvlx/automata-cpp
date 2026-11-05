@@ -41,13 +41,13 @@ int main() {
         source_directory/"correct_dfa_specs",
         source_directory/"generated_dfa"
     );
-    bool correct_nfa_specs_successful = generate_dfa_headers(
+    bool correct_gendfa_specs_successful = generate_dfa_headers(
         source_directory/"generated_dfa_specs",
         source_directory/"generated_nfa"
     );
 
     return !(
         correct_dfa_specs_successful &&
-        correct_nfa_specs_successful
+        correct_gendfa_specs_successful
     );
 }

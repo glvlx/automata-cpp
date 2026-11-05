@@ -6,6 +6,7 @@ doxy/
 
 generated_dfa/
 generated_dfa_specs/
+generated_nfa/
 
 test.cpp
 *.txt
