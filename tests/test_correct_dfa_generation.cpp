@@ -20,6 +20,7 @@
 #include "generated_nfa/fnfa_rwth.hpp"
 
 #include "generated_nfa/nfa_abstar.hpp"
+#include "generated_nfa/nfa_10_star_or_01_star.hpp"
 
 #define BOOL_TO_STR(x) ((x) ? "true" : "false")
 
@@ -159,4 +160,20 @@ TEST(CorrectNFAGenerationTest, Test_AB_star) {
         {"aba", false},
         {"abb", false}
     }, DFA_nfa_abstar::init);
+}
+
+TEST(CorrectNFAGenerationTest, Test_10_star_or_01_star) {
+    end_to_end({
+        {"", true},
+        {"0", false},
+        {"1", false},
+        {"10", true},
+        {"101010", true},
+        {"01", true},
+        {"0101", true},
+        {"101", false},
+        {"010", false},
+        {"10101001", false},
+        {"01011010", false}
+    }, DFA_nfa_10_star_or_01_star::init);
 }
