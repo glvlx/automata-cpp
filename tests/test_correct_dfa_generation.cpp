@@ -19,6 +19,8 @@
 #include "generated_nfa/fnfa_whitespace_symbol.hpp"
 #include "generated_nfa/fnfa_rwth.hpp"
 
+#include "generated_nfa/nfa_abstar.hpp"
+
 #define BOOL_TO_STR(x) ((x) ? "true" : "false")
 
 void end_to_end(const std::vector<std::pair<std::string, bool>>& test_cases, void (*init_function)(Automata::DFA&)) {
@@ -145,3 +147,16 @@ TEST(CorrectNFAasDFATest, AcceptRWTH) {
 }
 
 /********** DFA from real NFA **********/
+TEST(CorrectNFAGenerationTest, Test_AB_star) {
+    end_to_end({
+        {"", true},
+        {"ab", true},
+        {"ababab", true},
+        {"a", false},
+        {"b", false},
+        {"aab", false},
+        {"bab", false},
+        {"aba", false},
+        {"abb", false}
+    }, DFA_nfa_abstar::init);
+}

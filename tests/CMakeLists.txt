@@ -18,29 +18,31 @@ target_compile_definitions(build_correct_dfa_specs PRIVATE NDEBUG)
 
 set(GENERATED_DFA_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/generated_dfa)
 set(GENERATED_DFA_SPEC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/generated_dfa_specs)
+set(GENERATED_NFA_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/generated_nfa)
 
 # List of correct dfa specs so that they can be tracked
-file(GLOB_RECURSE CORRECT_DFA_SPECS 
+file(GLOB_RECURSE CORRECT_FA_SPECS 
     CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/correct_dfa_specs/*.dfa"
-                      "${CMAKE_CURRENT_SOURCE_DIR}/generated_dfa_specs/*.dfa"
-                      "${CMAKE_CURRENT_SOURCE_DIR}/generated_dfa/*.hpp")
+                      "${GENERATED_DFA_HEADER_DIR}/*.hpp"
+                      "${GENERATED_DFA_SPEC_DIR}/*.dfa"
+                      "${GENERATED_NFA_HEADER_DIR}/*.hpp")
 
-set(CORRECT_DFA_SPEC_STAMP "${CMAKE_CURRENT_BINARY_DIR}/correct_dfa_specs.stamp")
+set(CORRECT_FA_SPEC_STAMP "${CMAKE_CURRENT_BINARY_DIR}/correct_fa_specs.stamp")
 
 # Command tied to an output stamp (empty file generated on every run of the command)
-# The command itself is only run on dependency (here ${CORRECT_DFA_SPECS}) update
+# The command itself is only run on dependency (here ${CORRECT_FA_SPECS}) update
 add_custom_command(
-    OUTPUT "${CORRECT_DFA_SPEC_STAMP}"
+    OUTPUT "${CORRECT_FA_SPEC_STAMP}"
     COMMAND build_correct_dfa_specs
     COMMAND build_correct_dfa
-    COMMAND ${CMAKE_COMMAND} -E touch "${CORRECT_DFA_SPEC_STAMP}"
-    DEPENDS ${CORRECT_DFA_SPECS} build_correct_dfa build_correct_dfa_specs
+    COMMAND ${CMAKE_COMMAND} -E touch "${CORRECT_FA_SPEC_STAMP}"
+    DEPENDS ${CORRECT_FA_SPECS} build_correct_dfa build_correct_dfa_specs
     COMMENT "Running build_correct_dfa..."
     VERBATIM
 )
 
 # Target that "interfaces" the stamp file, is meant to be depended on to invoke the command above
-add_custom_target(generate_correct_dfa DEPENDS "${CORRECT_DFA_SPEC_STAMP}")
+add_custom_target(generate_correct_dfa DEPENDS "${CORRECT_FA_SPEC_STAMP}")
 
 add_executable(test_correct_dfa ${CMAKE_CURRENT_SOURCE_DIR}/test_correct_dfa_generation.cpp)
 add_dependencies(test_correct_dfa build_correct_dfa generate_correct_dfa)

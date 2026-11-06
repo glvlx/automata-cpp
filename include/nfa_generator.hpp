@@ -6,8 +6,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <sstream>
-#include <vector>
-#include <queue>
 #include <functional>
 
 #include "compound_state.hpp"

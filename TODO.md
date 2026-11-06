@@ -7,3 +7,4 @@
 
 ## NFAGenerator:
 - [x] fix epsilon path calculation in parse_input()
+- [x] bug: initial state not marked as accepting despite an epsilon-transition to an accepting state

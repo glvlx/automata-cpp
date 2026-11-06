@@ -1,3 +1,6 @@
+/**
+ * Generate DFA specifications from correct NFA specifications
+ */
 #include <iostream>
 #include <fstream>
 #include <filesystem>
