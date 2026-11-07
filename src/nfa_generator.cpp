@@ -110,7 +110,7 @@ bool NFAGenerator::parse_input() {
             if (toktype == TokenType::COMMENT) {
                 break;
             } else if (toktype == TokenType::INVALID) {
-                std::cerr << "Cannot parse the NFA: invalid token [" << tok << "]" << std::endl;
+                fmt_error(line_no_, line, "invalid token [" + tok + "]");
             }
             tokens.push_back({
                 toktype, 
@@ -173,6 +173,20 @@ bool NFAGenerator::parse_input() {
                 && tokens[3].type_ == TokenType::STATE_NAME
                 /* check all the remaining tokens later */
             )) {
+                /* additional error detection */
+                if (tokens.size() >= 4) {
+                    if (tokens[0].type_ != TokenType::STATE_NAME) {
+                        state_name_error(line_no_, line, tokens[0].token_);
+                    }
+                    if (tokens[1].type_ != TokenType::SYMBOL) {
+                        sym_error(line_no_, line, tokens[1].token_);
+                    }
+                    for (int i = 3; i < tokens.size(); i++) {
+                        if (tokens[i].type_ != TokenType::STATE_NAME) {
+                            state_name_error(line_no_, line, tokens[i].token_);
+                        }
+                    }
+                }
                 fmt_error(line_no_, line, "wrong transition format");
             }
             std::string state_from = tokens[0].token_;
@@ -190,7 +204,7 @@ bool NFAGenerator::parse_input() {
                     break;
                 }
                 std::string state_to = token_to.token_;
-                /* do not check the state name */
+                /* do not check the state name (checked in parser) */
                 if (!valid_) continue;
 
                 states_.try_emplace(state_to, false);
@@ -325,17 +339,17 @@ unsigned int NFAGenerator::write_dfa_spec(std::ostream& os) {
 
     /* Generate output */
     os << "! " << compound_start_state_.hash() << std::endl;
-    bool accepted_states_met = false;
-    for (const auto& [state, is_accepted] : compound_states_) {
-        if (is_accepted) {
-            if (!accepted_states_met) {
-                accepted_states_met = true;
+    bool accepting_states_met = false;
+    for (const auto& [state, is_accepting] : compound_states_) {
+        if (is_accepting) {
+            if (!accepting_states_met) {
+                accepting_states_met = true;
                 os << "+";
             }
             os << ' ' << state.hash();
         }
     }
-    if (accepted_states_met) {
+    if (accepting_states_met) {
         os << std::endl;
     }
     for (const auto& [state_from, transitions] : compound_transitions_) {

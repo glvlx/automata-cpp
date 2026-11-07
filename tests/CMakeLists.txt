@@ -5,7 +5,7 @@ add_executable(test_dfa ${CMAKE_CURRENT_SOURCE_DIR}/test_dfa.cpp)
 target_link_libraries(test_dfa PRIVATE test_headers dfa)
 
 add_executable(test_faulty_dfa ${CMAKE_CURRENT_SOURCE_DIR}/test_faulty_dfa_generation.cpp)
-target_link_libraries(test_faulty_dfa PRIVATE test_headers dfa dfa_generator)
+target_link_libraries(test_faulty_dfa PRIVATE test_headers dfa dfa_generator nfa_generator)
 
 # Builds the generator of correct DFA
 add_executable(build_correct_dfa ${CMAKE_CURRENT_SOURCE_DIR}/build_correct_dfa.cpp)

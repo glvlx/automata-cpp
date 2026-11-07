@@ -42,12 +42,9 @@ void test_AcceptEmpty(void (*init_function)(Automata::DFA&)) {
         {"01", false}
     }, init_function);
 }
-
-
 TEST(CorrectDFAGenerationTest, AcceptEmpty) {
     test_AcceptEmpty(DFA_accept_empty::init);
 }
-
 TEST(CorrectNFAasDFATest, AcceptEmpty) {
     test_AcceptEmpty(DFA_fnfa_accept_empty::init);
 }
@@ -60,11 +57,9 @@ void test_AcceptNone(void (*init_function)(Automata::DFA&)) {
         {"01", false}
     }, init_function);
 }
-
 TEST(CorrectDFAGenerationTest, AcceptNone) {
     test_AcceptNone(DFA_accept_none::init);
 }
-
 TEST(CorrectNFAasDFATest, AcceptNone) {
     test_AcceptNone(DFA_fnfa_accept_none::init);
 }
@@ -80,11 +75,9 @@ void test_Bin11(void (*init_function)(Automata::DFA&)) {
         {"110", false}
     }, init_function);
 }
-
 TEST(CorrectDFAGenerationTest, Bin11) {
     test_Bin11(DFA_bin_11::init);
 }
-
 TEST(CorrectNFAasDFATest, Bin11) {
     test_Bin11(DFA_fnfa_bin_11::init);
 }
@@ -103,11 +96,9 @@ void test_AcceptEven(void (*init_function)(Automata::DFA&)) {
         {"110", true}
     }, init_function);
 }
-
 TEST(CorrectDFAGenerationTest, AcceptEven) {
     test_AcceptEven(DFA_accept_even::init);
 }
-
 TEST(CorrectNFAasDFATest, AcceptEven) {
     test_AcceptEven(DFA_fnfa_accept_even::init);
 }
@@ -121,11 +112,9 @@ void test_WhitespaceSymbol(void (*init_function)(Automata::DFA&)) {
         {"122", false}
     }, init_function);
 }
-
 TEST(CorrectDFAGenerationTest, WhitespaceSymbol) {
     test_WhitespaceSymbol(DFA_whitespace_symbol::init);
 }
-
 TEST(CorrectNFAasDFATest, WhitespaceSymbol) {
     test_WhitespaceSymbol(DFA_fnfa_whitespace_symbol::init);
 }
@@ -138,11 +127,9 @@ void test_AcceptRWTH(void (*init_function)(Automata::DFA&)) {
         {"1234", false}
     }, init_function);
 }
-
 TEST(CorrectDFAGenerationTest, AcceptRWTH) {
     test_AcceptRWTH(DFA_rwth::init);
 }
-
 TEST(CorrectNFAasDFATest, AcceptRWTH) {
     test_AcceptRWTH(DFA_fnfa_rwth::init);
 }

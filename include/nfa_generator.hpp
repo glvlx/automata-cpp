@@ -69,6 +69,11 @@ public:
     NFAGenerator(const NFAGenerator&) = delete;
 
     /**
+     * @return a bit field containing all status flags
+     */
+    inline unsigned int get_status_flags() { return status_flags_; }
+
+    /**
      * Writes a corresponding DFA specification to an output stream
      * 
      * @param os target output stream
