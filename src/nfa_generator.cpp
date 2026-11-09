@@ -170,7 +170,6 @@ bool NFAGenerator::parse_input() {
                 || tokens[1].type_ == TokenType::EPSILON)
                 /* epsilon transition logic handled in codegen */
                 && tokens[2].type_ == TokenType::RARROW
-                && tokens[3].type_ == TokenType::STATE_NAME
                 /* check all the remaining tokens later */
             )) {
                 /* additional error detection */
@@ -181,13 +180,13 @@ bool NFAGenerator::parse_input() {
                     if (tokens[1].type_ != TokenType::SYMBOL) {
                         sym_error(line_no_, line, tokens[1].token_);
                     }
-                    for (int i = 3; i < tokens.size(); i++) {
-                        if (tokens[i].type_ != TokenType::STATE_NAME) {
-                            state_name_error(line_no_, line, tokens[i].token_);
-                        }
-                    }
                 }
                 fmt_error(line_no_, line, "wrong transition format");
+            }
+            for (int i = 3; i < tokens.size(); i++) {
+                if (tokens[i].type_ != TokenType::STATE_NAME) {
+                    state_name_error(line_no_, line, tokens[i].token_);
+                }
             }
             std::string state_from = tokens[0].token_;
             if (!is_valid_state_name(state_from)) {

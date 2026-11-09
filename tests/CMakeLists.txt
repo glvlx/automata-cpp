@@ -7,6 +7,9 @@ target_link_libraries(test_dfa PRIVATE test_headers dfa)
 add_executable(test_faulty_dfa ${CMAKE_CURRENT_SOURCE_DIR}/test_faulty_dfa_generation.cpp)
 target_link_libraries(test_faulty_dfa PRIVATE test_headers dfa dfa_generator nfa_generator)
 
+add_executable(test_faulty_nfa ${CMAKE_CURRENT_SOURCE_DIR}/test_faulty_nfa_generation.cpp)
+target_link_libraries(test_faulty_nfa PRIVATE test_headers nfa_generator)
+
 # Builds the generator of correct DFA
 add_executable(build_correct_dfa ${CMAKE_CURRENT_SOURCE_DIR}/build_correct_dfa.cpp)
 target_link_libraries(build_correct_dfa PRIVATE test_headers dfa dfa_generator)
@@ -65,3 +68,4 @@ gtest_discover_tests(test_correct_dfa
 )
 gtest_discover_tests(test_faulty_dfa)
 gtest_discover_tests(test_dfa)
+gtest_discover_tests(test_faulty_nfa)
