@@ -36,7 +36,7 @@ class DFAGenerator {
      * - `'.'`: SYMBOL
      * otherwise INVALID.
      */
-    TokenType get_token_type(std::string tok);
+    TokenType get_token_type(std::string tok) const noexcept;
 
     struct Token {
         TokenType type_;
@@ -60,7 +60,7 @@ public:
     /**
      * @return a bit field containing all status flags
      */
-    inline unsigned int get_status_flags() { return status_flags_; }
+    inline unsigned int get_status_flags() const noexcept { return status_flags_; }
 
     /**
      * Writes C++ code corresponding to the specification to an ostream.

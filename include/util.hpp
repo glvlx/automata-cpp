@@ -30,7 +30,7 @@ namespace Automata {
 /**
  * Checks whether the argument is a valid C++ identifier
  */
-inline bool is_valid_id(std::string name) {
+inline bool is_valid_id(std::string name) noexcept {
     if (name.size() == 0 || isdigit(name.front())) {
         return false;
     }
@@ -47,7 +47,7 @@ inline bool is_valid_id(std::string name) {
  * (an arbitrary sequence of ASCII digits, letters and _;
  * may also start with a digit)
  */
-inline bool is_valid_state_name(std::string state_name) {
+inline bool is_valid_state_name(std::string state_name) noexcept {
     if (state_name.size() == 0) {
         return false;
     }

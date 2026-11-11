@@ -12,7 +12,7 @@
 
 namespace Automata {
 
-TokenType DFAGenerator::get_token_type(std::string tok) {
+TokenType DFAGenerator::get_token_type(std::string tok) const noexcept {
     if (tok.size() == 0) {
         return TokenType::INVALID;
     } else if (tok == "!") {
@@ -72,7 +72,7 @@ DFAGenerator::DFAGenerator(std::istream& is, std::ostream& error_os)
         std::vector<Token> tokens;
 
         /* first pass: separate special characters with whitespaces and verify characters */
-        for (auto c : line) {
+        for (const auto& c : line) {
             if (c == '!' || c == '+' || c == '>') {
                 aux << ' ' << c << ' ';
             } else {
@@ -119,7 +119,7 @@ DFAGenerator::DFAGenerator(std::istream& is, std::ostream& error_os)
         /* print tokens in debug mode */
         #if DEBUG_PRINT_ENABLED
         std::cout << "{";
-        for (auto token : tokens) {
+        for (const auto& token : tokens) {
             std::cout << "[" << token.type_ << ": " << token.token_ << "], ";
         }
         std::cout << "\b\b}\n";
@@ -245,7 +245,7 @@ unsigned int DFAGenerator::write(std::ostream& os, std::string dfa_name) {
     os << std::endl;
     
     /* add all other states */
-    for (auto [state_name, is_accepting] : states_) {
+    for (const auto& [state_name, is_accepting] : states_) {
         if (state_name == start_state_name_) continue;
 
         os << TAB << "auto& q" << state_name << " = dfa.new_state(" 
@@ -255,8 +255,8 @@ unsigned int DFAGenerator::write(std::ostream& os, std::string dfa_name) {
     os << std::endl;
 
     /* add transitions */
-    for (auto [state_from, map] : transitions_) {
-        for (auto [char_on, state_to] : map) {
+    for (const auto& [state_from, map] : transitions_) {
+        for (const auto& [char_on, state_to] : map) {
             os << TAB << "dfa.add_transition(" 
                 << "q" << state_from << ", "
                 << char_on << ", "

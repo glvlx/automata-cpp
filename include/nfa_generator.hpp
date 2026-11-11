@@ -35,7 +35,7 @@ class NFAGenerator final {
         std::unordered_map<std::string, CompoundState>> compound_transitions_;
     std::unordered_map<std::string, std::unordered_set<std::string>> eps_path_from, eps_path_to;
     
-    TokenType get_token_type(std::string tok);
+    TokenType get_token_type(std::string tok) const noexcept;
 
     struct Token {
         TokenType type_;
@@ -70,7 +70,7 @@ public:
     /**
      * @return a bit field containing all status flags
      */
-    inline unsigned int get_status_flags() { return status_flags_; }
+    inline unsigned int get_status_flags() const noexcept { return status_flags_; }
 
     /**
      * Writes a corresponding DFA specification to an output stream

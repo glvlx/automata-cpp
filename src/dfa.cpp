@@ -86,7 +86,7 @@ bool DFA::serialize(std::ostream& os) {
 
     /* Accepting states */
     bool accepting_state_present = false;
-    for (auto& state : states_) {
+    for (const auto& state : states_) {
         if (!state.is_accepting_) {
             continue;
         }
@@ -104,8 +104,8 @@ bool DFA::serialize(std::ostream& os) {
     }
 
     /* Transitions */
-    for (auto [from, map] : transitions_) {
-        for (auto [on, to] : map) {
+    for (const auto& [from, map] : transitions_) {
+        for (const auto& [on, to] : map) {
             os << "q" << from->id_ << " '" << on << "' > q" << to->id_ << std::endl;
         }
     }

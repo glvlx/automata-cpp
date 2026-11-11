@@ -16,7 +16,7 @@
 
 namespace Automata {
 
-TokenType NFAGenerator::get_token_type(std::string tok) {
+TokenType NFAGenerator::get_token_type(std::string tok) const noexcept {
     if (tok.size() == 0) {
         return TokenType::INVALID;
     } else if (tok == "!") {
@@ -33,7 +33,7 @@ TokenType NFAGenerator::get_token_type(std::string tok) {
     
     /* STATE_NAME */
     bool is_state_name = true;
-    for (auto c : tok) {
+    for (const auto& c : tok) {
         if (!(std::isalnum(c) || c == '_')) {
             is_state_name = false;
             break;
@@ -81,7 +81,7 @@ bool NFAGenerator::parse_input() {
         std::vector<Token> tokens;
 
         /* first pass: separate special characters with whitespaces and verify characters */
-        for (auto c : line) {
+        for (const auto& c : line) {
             if (c == '!' || c == '+' || c == '>') {
                 aux << ' ' << c << ' ';
             } else {
@@ -121,7 +121,7 @@ bool NFAGenerator::parse_input() {
         #if DEBUG_PRINT_ENABLED
         // print tokens
         std::cout << "{";
-        for (auto token : tokens) {
+        for (const auto& token : tokens) {
             std::cout << "[" << token.type_ << ": " << token.token_ << "], ";
         }
         std::cout << "}" << std::endl;
@@ -183,7 +183,7 @@ bool NFAGenerator::parse_input() {
                 }
                 fmt_error(line_no_, line, "wrong transition format");
             }
-            for (int i = 3; i < tokens.size(); i++) {
+            for (size_t i = 3; i < tokens.size(); i++) {
                 if (tokens[i].type_ != TokenType::STATE_NAME) {
                     state_name_error(line_no_, line, tokens[i].token_);
                 }

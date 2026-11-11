@@ -20,7 +20,7 @@ enum class TokenType {
     COMMENT
 };
 
-inline constexpr std::string_view to_string(TokenType t) {
+inline constexpr std::string_view to_string(TokenType t) noexcept {
     switch(t) {
         case TokenType::START_MARKER:       return "START_MARKER";
         case TokenType::ACCEPT_MARKER:      return "ACCEPT_MARKER";
