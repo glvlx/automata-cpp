@@ -1,5 +1,5 @@
 add_library(test_headers INTERFACE)
-target_link_libraries(test_headers INTERFACE internal_headers GTest::gtest_main)
+target_link_libraries(test_headers INTERFACE headers GTest::gtest_main)
 
 add_executable(test_dfa ${CMAKE_CURRENT_SOURCE_DIR}/test_dfa.cpp)
 target_link_libraries(test_dfa PRIVATE test_headers dfa)

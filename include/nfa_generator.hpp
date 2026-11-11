@@ -11,7 +11,6 @@
 #include "compound_state.hpp"
 #include "fa_token.hpp"
 #include "fagen_status_flag.hpp"
-#include "util.hpp"
 
 #define EPSILON_TOKEN "_"
 
