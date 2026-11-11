@@ -61,7 +61,10 @@ class NFAGenerator final {
     void construct_power_set();
 
 public:
-
+    /**
+     * Reads an NFA specification and prepares an internal representation 
+     * to generate a DFA specification.
+     */
     explicit NFAGenerator(std::istream& is);
 
     /* copying doesn't make sense */

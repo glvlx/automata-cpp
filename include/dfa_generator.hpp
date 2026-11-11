@@ -57,6 +57,9 @@ public:
      */
     DFAGenerator(std::istream& is, std::ostream& error_os = std::cerr);
 
+    /* copying doesn't make sense */
+    DFAGenerator(const DFAGenerator&) = delete;g
+
     /**
      * @return a bit field containing all status flags
      */
