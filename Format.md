@@ -13,6 +13,7 @@ Each line has to be of one of the following forms:
 
 - Start state definition: `! [state_name]`
   - Each start state definition overwrites all previous definitions
+  - (At least) one start state definition must be present in each valid specification
 
 and a state name may only contain alphanumeric characters and `_`.
 Note that square brackets `[]` are not literal and only denote user text fields.
@@ -28,7 +29,9 @@ Follows the same rules, except:
   2. `[state_from] _ > [state_to]...`
     
       In this form, literal `_` represents an empty symbol (epsilon)
-  3. `[state_from] [[symbol_set]] > [state_to]...`
+  3. `[state_from] [[symbol_set]] > [state_to]...` 
+      
+      (`[symbol_set]` enclosed in literal `[]`)
       
       This form allows to transition on a set of symbols. 
 
