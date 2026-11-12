@@ -6,26 +6,46 @@
 #define UTIL_H_
 
 #ifndef NDEBUG
-#define DEBUG_PRINT_ENABLED true
+#define AUTOMATA_DEBUG_PRINT_ENABLED true
+#define AUTOMATA_VDEBUG_PRINT_ENABLED false
 #else
-#define DEBUG_PRINT_ENABLED false
+#define AUTOMATA_DEBUG_PRINT_ENABLED false
+#define AUTOMATA_VDEBUG_PRINT_ENABLED false
 #endif
+
 
 #define TAB "    "
 
 #include <iostream>
 #include <string>
 
+namespace Automata {
+
 /**
- * Prints a debug message to std::cout when building in debug mode
+ * Debug message printing
  */
-#if DEBUG_PRINT_ENABLED
-#define DEBUG_PRINT(MSG) std::cout << "[dbg]: " << MSG << std::endl
+struct dummy_stream {
+    template <typename T>
+    dummy_stream& operator<<(const T&) {
+        return *this;
+    }
+
+    dummy_stream& flush() {
+        return *this;
+    }
+};
+
+#if AUTOMATA_DEBUG_PRINT_ENABLED
+#define DEBUG_STREAM (std::cout)
 #else
-#define DEBUG_PRINT(MSG)
+#define DEBUG_STREAM Automata::dummy_stream()
 #endif
 
-namespace Automata {
+#if AUTOMATA_VDEBUG_PRINT_ENABLED // verbose debug
+#define VDEBUG_STREAM (std::cout)
+#else
+#define VDEBUG_STREAM Automata::dummy_stream()
+#endif
 
 /**
  * Checks whether the argument is a valid C++ identifier

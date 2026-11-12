@@ -22,7 +22,7 @@ For specification file format, see [Format.md](Format.md)
 CMake is used as this project's build system.
 For example, if you wish to build the project into `build` directory:
 ```
-$ cmake -B build
+$ cmake -B build [-DCMAKE_BUILD_TYPE=Release]
 $ cmake --build build
 ```
 

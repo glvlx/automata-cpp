@@ -63,10 +63,15 @@ void DFAGenerator::sym_error(int line_no, std::string line, std::string symbol) 
 DFAGenerator::DFAGenerator(std::istream& is, std::ostream& error_os)
     : is_(is)
     , error_os_(error_os) {
+    DEBUG_STREAM << "[dbg] =======================================\n"
+                 << "[dbg]                 New DFA\n"
+                 << "[dbg] =======================================\n";
+    DEBUG_STREAM.flush();
+
     /* split input into lines */
     std::string line;
 
-    DEBUG_PRINT("tokens:");
+    DEBUG_STREAM << "[dbg] tokens:" << "\n";
     while (std::getline(is_, line)) {
         std::stringstream aux; // special symbols separated with spaces to make parsing easier
         std::vector<Token> tokens;
@@ -117,12 +122,13 @@ DFAGenerator::DFAGenerator(std::istream& is, std::ostream& error_os)
         }
 
         /* print tokens in debug mode */
-        #if DEBUG_PRINT_ENABLED
-        std::cout << "{";
+        #if AUTOMATA_DEBUG_PRINT_ENABLED
+        DEBUG_STREAM << "[dbg] {";
         for (const auto& token : tokens) {
-            std::cout << "[" << token.type_ << ": " << token.token_ << "], ";
+            DEBUG_STREAM << "[" << token.type_ << ": " << token.token_ << "], ";
         }
-        std::cout << "\b\b}\n";
+        DEBUG_STREAM << "\b\b}\n";
+        DEBUG_STREAM.flush();
         #endif
 
         /* determine line type & save relevant information */
@@ -207,9 +213,8 @@ DFAGenerator::DFAGenerator(std::istream& is, std::ostream& error_os)
 
         line_no_++;
     }
-    #if DEBUG_PRINT_ENABLED
-    std::cout.flush();
-    #endif
+    DEBUG_STREAM.flush();
+    
     if (!is_valid_state_name(start_state_name_)) {
         valid_ = false;
         status_flags_ |= FAGenStatusFlag::NO_INIT;

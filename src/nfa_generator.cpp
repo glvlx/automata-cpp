@@ -84,6 +84,7 @@ void NFAGenerator::sym_error(int line_no, std::string line, std::string symbol) 
 
 bool NFAGenerator::parse_input() {
     /* split input into lines */
+    DEBUG_STREAM << "[dbg] tokens:" << "\n";
     std::string line;
     while (std::getline(is_, line)) {
         line_no_++;
@@ -152,13 +153,14 @@ bool NFAGenerator::parse_input() {
             });
         }
 
-        #if DEBUG_PRINT_ENABLED
+        #if AUTOMATA_DEBUG_PRINT_ENABLED
         // print tokens
-        std::cout << "{";
+        DEBUG_STREAM << "[dbg] {";
         for (const auto& token : tokens) {
-            std::cout << "[" << token.type_ << ": " << token.token_ << "], ";
+            DEBUG_STREAM << "[" << token.type_ << ": " << token.token_ << "], ";
         }
-        std::cout << "}" << std::endl;
+        DEBUG_STREAM << "}\n";
+        DEBUG_STREAM.flush();
         #endif
 
         /* determine line type & save relevant information */
@@ -265,7 +267,8 @@ bool NFAGenerator::parse_input() {
                                 fmt_error(line_no_, line, "unterminated range in symbol group");
                                 break;
                             } else if (next2 == '-') {
-                                fmt_error(line_no_, line, "wrong range in symbol group: " + c + next + next2);
+                                std::string wrong_group = std::string(1, c) + std::string(1, next) + std::string(1, next2);
+                                fmt_error(line_no_, line, "wrong range in symbol group: " + wrong_group);
                                 cit += 2;
                             } else {
                                 char range_start = c;
@@ -352,7 +355,7 @@ bool NFAGenerator::parse_input() {
 }
 
 void NFAGenerator::eliminate_epsilon() {
-    DEBUG_PRINT("new transitions after epsilon elimination:");
+    VDEBUG_STREAM << "[vdbg] new transitions after epsilon elimination:\n";
 
     /* Eliminate epsilon-transitions */
     for (const auto& [state_from, map] : transitions_) {
@@ -361,7 +364,7 @@ void NFAGenerator::eliminate_epsilon() {
             for (const auto& state_to : target_set) {
                 for (const auto& post_state: eps_path_from[state_to]) {
                     transitions_[state_from][char_on].insert(post_state);
-                    DEBUG_PRINT("[add] " + state_from + " " + char_on + " > " + post_state);
+                    VDEBUG_STREAM << "[add] " << state_from << " " << char_on << " > " << post_state << "\n";
                 }
             }
         }
@@ -371,11 +374,12 @@ void NFAGenerator::eliminate_epsilon() {
             for (const auto& [char_on, target_set] : map) {
                 for (const auto& state_to : target_set) {
                     transitions_[pre_state][char_on].insert(state_to);
-                    DEBUG_PRINT("[add] " + pre_state + " " + char_on + " > " + state_to);
+                    VDEBUG_STREAM << "[add] " << pre_state << " " << char_on << " > " << state_to << "\n";
                 }
             }
         }
     }
+    VDEBUG_STREAM.flush();
 }
 
 void NFAGenerator::construct_power_set() {
@@ -413,6 +417,11 @@ void NFAGenerator::construct_power_set() {
 
 NFAGenerator::NFAGenerator(std::istream& is)
         : is_(is) {
+    DEBUG_STREAM << "[dbg] =======================================\n"
+                 << "[dbg]                 New NFA\n"
+                 << "[dbg] =======================================\n";
+    DEBUG_STREAM.flush();
+
     parse_input();
     
     /* No further error detection */

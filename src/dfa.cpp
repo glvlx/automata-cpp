@@ -13,15 +13,13 @@ DFA::DFAState::DFAState(DFA* const parent, bool is_accepting)
 : parent_(parent)
 , id_(parent->max_id_++)
 , is_accepting_(is_accepting) {
-    std::stringstream dbgs;
-    dbgs << "new state at " << this;
-    DEBUG_PRINT(dbgs.str());
+    DEBUG_STREAM << "[dbg] new state at " << this << "\n";
+    DEBUG_STREAM.flush();
 }
 
 DFA::DFAState& DFA::get_initial_state(bool make_accepting) {
-    std::stringstream dbgs;
-    dbgs << "new reference to " << &states_.front();
-    DEBUG_PRINT(dbgs.str());
+    VDEBUG_STREAM << "[vdbg] new reference to " << &states_.front() << "\n";
+    VDEBUG_STREAM.flush();
 
     if (make_accepting) {
         states_.front().is_accepting_ = true;
@@ -38,9 +36,8 @@ DFA::DFAState& DFA::new_state(bool is_accepting, bool make_start_state) {
     }
     DFAState& state = (make_start_state) ? states_.front() : states_.back();
     
-    std::stringstream dbgs;
-    dbgs << "new reference to " << &state;
-    DEBUG_PRINT(dbgs.str());
+    VDEBUG_STREAM << "[vdbg] new reference to " << &state << "\n";
+    VDEBUG_STREAM.flush();
 
     transitions_.emplace(&state, 
                             std::unordered_map<char, DFAState*>());
