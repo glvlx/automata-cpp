@@ -13,8 +13,8 @@ DFA::DFAState::DFAState(DFA* const parent, bool is_accepting)
 : parent_(parent)
 , id_(parent->max_id_++)
 , is_accepting_(is_accepting) {
-    DEBUG_STREAM << "[dbg] new state at " << this << "\n";
-    DEBUG_STREAM.flush();
+    VDEBUG_STREAM << "[vdbg] new state at " << this << "\n";
+    VDEBUG_STREAM.flush();
 }
 
 DFA::DFAState& DFA::get_initial_state(bool make_accepting) {
