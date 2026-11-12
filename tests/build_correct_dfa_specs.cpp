@@ -31,8 +31,8 @@ bool generate_dfa_specs(
         Automata::NFAGenerator nfagen(is);
         bool nfa_successful = nfagen.write_dfa_spec(os) == Automata::FAGenStatusFlag::OK;
         if (!nfa_successful) {
-            return false;
             std::cerr << "Error: cannot generate DFA specification for DFA \"" << nfa_name << "\" (as NFA)" << std::endl;
+            return false;
         }
     }
 

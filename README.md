@@ -4,6 +4,7 @@
   - [Libraries](#libraries)
     - [List of exported targets](#list-of-exported-targets)
   - [Apps](#apps)
+  - [Examples](#examples)
 
 ## Description
 
@@ -13,7 +14,7 @@ This project provides:
   - A way of serializing DFAs to specifications
 - DFAGenerator class that generates a C++ header from a DFA specification. 
   This header provides a function that initializes a new DFA with a set of corresponding states and transitions.
-- NFAGenerator class that generates a DFA specification from an NFA specification.
+- NFAGenerator class that generates a DFA specification from an [NFA](https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton) specification.
 
 For specification file format, see [Format.md](Format.md)
 
@@ -68,3 +69,8 @@ Libraries are exported as CMake targets. Therefore, they can be included in one 
 
 Additionally, several CLI applications are provided (`nfa2dfa`, `dfagen`). 
 Information on their usage can be obtained by calling with `--help`.
+
+### Examples
+
+Currently, there are no dedicated examples. However, [tests](tests/) can be considered as examples
+([valid DFA specifications](tests/correct_dfa_specs/), [valid NFA specifications](tests/correct_nfa_specs/))
