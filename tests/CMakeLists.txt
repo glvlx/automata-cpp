@@ -26,6 +26,7 @@ set(GENERATED_NFA_HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/generated_nfa)
 # List of correct dfa specs so that they can be tracked
 file(GLOB_RECURSE CORRECT_FA_SPECS 
     CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/correct_dfa_specs/*.dfa"
+                      "${CMAKE_CURRENT_SOURCE_DIR}/correct_nfa_specs/*.nfa"
                       "${GENERATED_DFA_HEADER_DIR}/*.hpp"
                       "${GENERATED_DFA_SPEC_DIR}/*.dfa"
                       "${GENERATED_NFA_HEADER_DIR}/*.hpp")

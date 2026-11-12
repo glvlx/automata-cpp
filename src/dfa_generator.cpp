@@ -258,8 +258,15 @@ unsigned int DFAGenerator::write(std::ostream& os, std::string dfa_name) {
     for (const auto& [state_from, map] : transitions_) {
         for (const auto& [char_on, state_to] : map) {
             os << TAB << "dfa.add_transition(" 
-                << "q" << state_from << ", "
-                << char_on << ", "
+                << "q" << state_from << ", ";
+            /* escape problematic characters */
+            if (char_on == "'\\'"
+            || char_on == "'\"'") {
+                os << "'\\" << char_on[1] << "'";
+            } else {
+                os << char_on;
+            }
+            os << ", "
                 << "q" << state_to
                 << ");" << std::endl;
         }

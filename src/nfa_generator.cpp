@@ -48,9 +48,18 @@ TokenType NFAGenerator::get_token_type(std::string tok) const noexcept {
         return TokenType::SYMBOL;
     }
 
+    /* SYMBOL_SET: any number of characters enclosed in [] */
+    if (tok.front() == '[') {
+        if (tok.back() == ']') {
+            return TokenType::SYMBOL_SET;
+        } 
+        return TokenType::SYMBOL_SET_START;
+    } else if (tok.back() == ']') {
+        return TokenType::SYMBOL_SET_END;
+    }
+
     return TokenType::INVALID;
 }
-
 void NFAGenerator::fmt_error(int line_no, std::string line, std::string reason) {
     valid_ = false;
     status_flags_ |= FAGenStatusFlag::WRONG_FMT;
@@ -77,6 +86,8 @@ bool NFAGenerator::parse_input() {
     /* split input into lines */
     std::string line;
     while (std::getline(is_, line)) {
+        line_no_++;
+
         std::stringstream aux;
         std::vector<Token> tokens;
 
@@ -93,7 +104,7 @@ bool NFAGenerator::parse_input() {
         std::string tok;
         while (aux >> tok) {
             /* special case: whitespace character, next "token" necessary */
-            if (tok == "'") {
+            if (tok == "'") { /* for SYMBOL */
                 aux >> tok;
                 if (tok == "'") {
                     tokens.push_back({
@@ -105,8 +116,31 @@ bool NFAGenerator::parse_input() {
                 }
                 continue;
             }
-            /* regular case */
             TokenType toktype = get_token_type(tok);
+            /* special case: SYMBOL_SET with whitespace */
+            if (toktype == TokenType::SYMBOL_SET_START) {
+                std::string symbol_group = tok + " ";
+                while (aux && toktype != TokenType::SYMBOL_SET_END) {
+                    aux >> tok;
+                    toktype = get_token_type(tok);
+                    symbol_group += tok;
+                }
+                if (toktype == TokenType::SYMBOL_SET_END) {
+                    tokens.push_back({
+                        TokenType::SYMBOL_SET,
+                        symbol_group
+                    });
+                } else {
+                    fmt_error(line_no_, line, "symbol group not terminated");
+                } 
+                continue;
+            } 
+            if (toktype == TokenType::SYMBOL_SET_END) {
+                fmt_error(line_no_, line, "unmatched symbol group terminator ']'");
+                continue;
+            }
+
+            /* regular case */
             if (toktype == TokenType::COMMENT) {
                 break;
             } else if (toktype == TokenType::INVALID) {
@@ -167,7 +201,8 @@ bool NFAGenerator::parse_input() {
             if (!(tokens.size() >= 4
                 && tokens[0].type_ == TokenType::STATE_NAME
                 && (tokens[1].type_ == TokenType::SYMBOL
-                || tokens[1].type_ == TokenType::EPSILON)
+                || tokens[1].type_ == TokenType::EPSILON
+                || tokens[1].type_ == TokenType::SYMBOL_SET)
                 /* epsilon transition logic handled in codegen */
                 && tokens[2].type_ == TokenType::RARROW
                 /* check all the remaining tokens later */
@@ -177,21 +212,24 @@ bool NFAGenerator::parse_input() {
                     if (tokens[0].type_ != TokenType::STATE_NAME) {
                         state_name_error(line_no_, line, tokens[0].token_);
                     }
-                    if (tokens[1].type_ != TokenType::SYMBOL) {
+                    if (!(tokens[1].type_ == TokenType::SYMBOL
+                    || tokens[1].type_ == TokenType::EPSILON
+                    || tokens[1].type_ == TokenType::SYMBOL_SET)) {
                         sym_error(line_no_, line, tokens[1].token_);
                     }
                 }
                 fmt_error(line_no_, line, "wrong transition format");
             }
-            for (size_t i = 3; i < tokens.size(); i++) {
-                if (tokens[i].type_ != TokenType::STATE_NAME) {
-                    state_name_error(line_no_, line, tokens[i].token_);
-                }
-            }
             std::string state_from = tokens[0].token_;
             if (!is_valid_state_name(state_from)) {
                 state_name_error(line_no_, line, state_from);
             }
+
+            if (tokens.size() < 4) {
+                continue;
+            }
+
+            auto& char_token = tokens[1];
             std::string char_on = tokens[1].token_;
 
             states_.try_emplace(state_from, false);
@@ -199,11 +237,64 @@ bool NFAGenerator::parse_input() {
             for (; to_it != tokens.end(); to_it++) {
                 Token token_to = *to_it;
                 if (token_to.type_ != TokenType::STATE_NAME) {
+                    state_name_error(line_no_, line, token_to.token_);
                     fmt_error(line_no_, line, "transition targets must be valid state names");
                     break;
                 }
                 std::string state_to = token_to.token_;
                 /* do not check the state name (checked in parser) */
+
+                /* handle symbol groups */
+                std::unordered_set<char> symbols_on;
+                if (char_token.type_ == TokenType::SYMBOL_SET) {
+                    /* discard [ ] */
+                    for (auto cit = char_on.cbegin() + 1; cit != char_on.cend() - 1; cit++) {
+                        char c = *cit;
+                        char next = (cit + 1 == char_on.cend()) ? '\0' : *(cit + 1);
+                        char next2 = (cit + 2 == char_on.cend()) ? '\0' : *(cit + 2);
+                        char next3 = (cit + 3 == char_on.cend()) ? '\0' : *(cit + 3);
+                        if (c == '\\') { // escaped characters
+                            if (!next) {
+                                fmt_error(line_no_, line, "unterminated escaping symbol \\ in symbol group");
+                                break;
+                            }
+                            symbols_on.insert(next);
+                            cit++;
+                        } else if (next == '-') { // ranges
+                            if (!next2) {
+                                fmt_error(line_no_, line, "unterminated range in symbol group");
+                                break;
+                            } else if (next2 == '-') {
+                                fmt_error(line_no_, line, "wrong range in symbol group: " + c + next + next2);
+                                cit += 2;
+                            } else {
+                                char range_start = c;
+                                char range_end = next2;
+                                if (next2 == '\\') {
+                                    if (!next3) {
+                                        fmt_error(line_no_, line, "unterminated escaping symbol \\ in symbol group");
+                                        break;
+                                    }
+                                    range_end = next3;
+                                    cit++;
+                                }
+                                if (range_start > range_end) {
+                                    std::cout << "[line " << line_no_ << "] Warning: range " << range_start 
+                                              << "-" << range_end << " is empty" << std::endl;
+                                }
+                                for (char x = range_start; x <= range_end; x++) {
+                                    symbols_on.insert(x);
+                                }
+                                cit += 2;
+                            }
+                        } else { // single characters
+                            symbols_on.insert(c);
+                        }
+                    }
+                } else if (char_token.type_ == TokenType::SYMBOL) {
+                    symbols_on.insert(char_on[1]);
+                }
+
                 if (!valid_) continue;
 
                 states_.try_emplace(state_to, false);
@@ -233,19 +324,23 @@ bool NFAGenerator::parse_input() {
                     continue;
                 }
                 // non-epsilon transition
-                auto [it, inserted] = transitions_.try_emplace(state_from, 
-                    std::unordered_map<std::string, std::unordered_set<std::string>>());
-                auto& map = it->second;
-                auto [map_it, map_inserted] = map.try_emplace(char_on, 
-                    std::unordered_set<std::string>());
-                auto& set = map_it->second;
-                set.insert(state_to);
+
+                for (const auto& sym : symbols_on) {
+                    std::string escaped_sym = "\'";
+                    escaped_sym += std::string(1, sym) + "\'";
+
+                    auto [it, inserted] = transitions_.try_emplace(state_from, 
+                        std::unordered_map<std::string, std::unordered_set<std::string>>());
+                    auto& map = it->second;
+                    auto [map_it, map_inserted] = map.try_emplace(escaped_sym, 
+                        std::unordered_set<std::string>());
+                    auto& set = map_it->second;
+                    set.insert(state_to);
+                }
             }
         } else {
             fmt_error(line_no_, line, "unknown line format");
         }
-
-        line_no_++;
     }
     if (!is_valid_state_name(start_state_name_)) {
         valid_ = false;

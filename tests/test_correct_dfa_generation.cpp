@@ -21,6 +21,8 @@
 
 #include "generated_nfa/nfa_abstar.hpp"
 #include "generated_nfa/nfa_10_star_or_01_star.hpp"
+#include "generated_nfa/nfa_multisym.hpp"
+#include "generated_nfa/nfa_c_id.hpp"
 
 #define BOOL_TO_STR(x) ((x) ? "true" : "false")
 
@@ -163,4 +165,31 @@ TEST(CorrectNFAGenerationTest, Test_10_star_or_01_star) {
         {"10101001", false},
         {"01011010", false}
     }, DFA_nfa_10_star_or_01_star::init);
+}
+
+TEST(CorrectNFAGenerationTest, Test_MultisymTransitions) {
+    end_to_end({
+        {"", false},
+        {"a", true},
+        {" ", true},
+        {"-", true},
+        {"-\\", false},
+        {"aeb", true},
+        {"e", false},
+        {"ad", false}
+    }, DFA_nfa_multisym::init);
+}
+
+TEST(CorrectNFAGenerationTest, Test_C_IDs) {
+    end_to_end({
+        {"", false},
+        {"_", true},
+        {"x", true},
+        {"Y", true},
+        {"1", false},
+        {"x1", true},
+        {"_1", true},
+        {"_x01TestId_233", true},
+        {"abc%108", false}
+    }, DFA_nfa_c_id::init);
 }

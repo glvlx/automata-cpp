@@ -22,7 +22,7 @@ namespace Automata {
  */
 class NFAGenerator final {
     std::istream& is_;
-    int line_no_ = 1;
+    int line_no_ = 0;
     bool valid_ = true;
     unsigned int status_flags_ = FAGenStatusFlag::OK;
     std::unordered_map<std::string, bool> states_; // bool indicates if the state is accepting

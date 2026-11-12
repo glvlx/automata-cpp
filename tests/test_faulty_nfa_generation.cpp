@@ -23,3 +23,13 @@ TEST(FaultyNFAGenerationTest, InvalidTargetStateList) {
     EXPECT_NE(try_build_nfa("invalid_targets.nfa")
             & Automata::FAGenStatusFlag::WRONG_STATE_NAME, 0);
 }
+
+TEST(FaultyNFAGenerationTest, UnterminatedSymbolSet) {
+    EXPECT_NE(try_build_nfa("symbol_set_unterminated.nfa")
+            & Automata::FAGenStatusFlag::WRONG_FMT, 0);
+}
+
+TEST(FaultyNFAGenerationTest, SymbolSetUnexpectedTerminator) {
+    EXPECT_NE(try_build_nfa("symbol_set_unexpected_terminator.nfa")
+            & Automata::FAGenStatusFlag::WRONG_FMT, 0);
+}

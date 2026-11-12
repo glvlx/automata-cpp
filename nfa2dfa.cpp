@@ -56,16 +56,26 @@ argp argp_instance {
     /*.parser   =*/ arg_parser,
     /*.args_doc =*/ "INPUT",
     /*.doc      =*/ "Constructs a DFA specification from the provided NFA specification.\v"
-        "Syntax:\n"
+        "Specification syntax:\n"
+        "\n"
         "Each line has to be in one of the following forms:\n"
-        "- Transition: STATE_FROM 'CHAR_ON' > STATE_TO [STATE_TO...]\n"
-        "  or          STATE_FROM _ > STATE_TO [STATES_TO...]\n"
-        "  where _ represents an empty symbol (epsilon);\n"
-        "- Terminal state(s) definition: + STATE_NAME [STATE_NAMES...]\n"
-        "  - multiple terminal definition lines are possible, the resulting set"
-        " is a union of all encountered definitions\n"
-        "- Start state definition: ! STATE_NAME\n"
-        "  - each start state definition overwrites all previous definitions.\n",
+        "\n"
+        "(1) Transition: STATE_FROM 'CHAR_ON' > STATE_TO [STATE_TO...]\n"
+        "    or          STATE_FROM _ > STATE_TO [STATES_TO...]\n"
+        "    or          STATE_FROM [CHAR_SET] > STATE_TO [STATE_TO...]\n"
+        "where _ represents an empty symbol (epsilon),\n"
+        "and CHAR_SET is a combination of printable ASCII characters including whitespace, "
+        "character ranges separated with `-`, and characters escaped with `\\`\n"
+        "(Example: CHAR_SET a-zA-Z_\\- represents all latin letters, underscore and a literal dash)\n"
+        "\n"
+        "(2) Accepting state(s) definition: + STATE_NAME [STATE_NAMES...]\n"
+        "Multiple accepting state definition lines are possible, the resulting set"
+        "is a union of all encountered definitions\n"
+        "\n"
+        "(3) Start state definition: ! STATE_NAME\n"
+        "Each start state definition overwrites all previous definitions.\n"
+        "\n"
+        "Note that a start state definition must be present in each valid specification.",
     /* .children    =*/ nullptr,
     /* .help_filter =*/ nullptr,
     /* .argp_domain =*/ nullptr
@@ -76,7 +86,7 @@ int main(int argc, char* argv[]) {
     argp_parse(&argp_instance, argc, argv, 0, nullptr, &parsed_args);
 
     if (parsed_args.ofname_ == "") {
-        parsed_args.ofname_ = "_autodfa_" + parsed_args.ifname_;
+        parsed_args.ofname_ = "_autodfa_" + parsed_args.ifname_ + ".dfa";
     }
 
     std::ifstream is(parsed_args.ifname_);

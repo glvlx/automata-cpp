@@ -1,0 +1,4 @@
+!q0
++q1
+q0 [abcd \-] > q1
+q1 [abcdef\\] > q0
