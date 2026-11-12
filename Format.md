@@ -1,7 +1,7 @@
 # Format
 This document describes the format of input files expected by different units.
 
-## DFA-Autogen
+## DFAGenerator
 Each line has to be of one of the following forms:
 - Transition: `[state_from] '[char_on]' > [state_to]`
   - `[char_on]` must be a single printable ASCII character or a literal whitespace
@@ -18,7 +18,7 @@ Furthermore, ignored are:
 - Empty lines
 - Comment lines starting with `//`
 
-## NFA-Autogen
+## NFAGenerator
 Follows the same rules, except:
 - A transition now has the form: `[state_from] {'[char_on]' / _} > [state_to]...`
   - literal `_` instead of `'[char_on]'` represents an empty symbol (epsilon)
