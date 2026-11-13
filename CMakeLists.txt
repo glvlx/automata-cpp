@@ -19,35 +19,25 @@ target_include_directories(headers INTERFACE
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-add_library(debug_options INTERFACE)
+add_library(_automata_compile_options INTERFACE)
 # Extensive warnings for gcc and clang
 if(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang)$")
-    target_compile_options(debug_options INTERFACE
+    target_compile_options(_automata_compile_options INTERFACE
                         -Wall -Wextra -Wpedantic -Wold-style-cast -Wcast-align
                         -Wunused -Wnon-virtual-dtor -Wconversion -Wsign-conversion
                         -Wdouble-promotion -Wformat=2 -Wimplicit-fallthrough)
 
     if(CMAKE_CXX_COMPILER_ID MATCHES "^GNU$")
-        target_compile_options(debug_options INTERFACE
+        target_compile_options(_automata_compile_options INTERFACE
                         -Wmisleading-indentation -Wduplicated-cond -Wduplicated-branches
                         -Wlogical-op -Wnull-dereference -Wuseless-cast)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES "^Clang$")
-        # target_compile_options(debug_options INTERFACE -Wlifetime)
+        # target_compile_options(_automata_compile_options INTERFACE -Wlifetime)
     endif()
 endif()
 
 # Libraries
 add_subdirectory(src)
-
-# Executables
-add_executable(playground playground.cpp)
-target_link_libraries(playground PRIVATE debug_options headers dfa nfa dfa_generator)
-
-add_executable(nfa2dfa nfa2dfa.cpp)
-target_link_libraries(nfa2dfa PRIVATE debug_options headers dfa nfa_generator)
-
-add_executable(dfagen dfagen.cpp)
-target_link_libraries(dfagen PRIVATE debug_options headers dfa_generator)
 
 # Aliases (for export)
 add_library(Automata::headers ALIAS headers)
@@ -67,13 +57,6 @@ add_library(Automata::nfa_generator ALIAS nfa_generator)
 # Installation (https://cmake.org/cmake/help/latest/guide/importing-exporting/index.html)
 install(TARGETS exported_libs headers dfa dfa_generator nfa_generator 
     EXPORT AutomataTargets
-    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-)
-
-install(TARGETS nfa2dfa dfagen
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
@@ -122,21 +105,45 @@ export(EXPORT AutomataTargets
        NAMESPACE Automata::
 )
 
-# Tests
-include(CTest)
+if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
-if (BUILD_TESTING # false if include(CTest) hasn't been called in the root file (i.e. this file has been included)
-    AND CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME) 
-    # GTest configuration from https://google.github.io/googletest/quickstart-cmake.html#set-up-a-project
-    set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+    # Executables
+    add_executable(playground playground.cpp)
+    target_link_libraries(playground PRIVATE _automata_compile_options headers dfa nfa dfa_generator)
 
-    FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/releases/download/v1.18.0/googletest-1.18.0.tar.gz
+    add_executable(nfa2dfa nfa2dfa.cpp)
+    target_link_libraries(nfa2dfa PRIVATE _automata_compile_options headers dfa nfa_generator)
+
+    add_executable(dfagen dfagen.cpp)
+    target_link_libraries(dfagen PRIVATE _automata_compile_options headers dfa_generator)
+
+    # Executable installation
+    install(TARGETS nfa2dfa dfagen
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     )
-    # For Windows: Prevent overriding the parent project's compiler/linker settings
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
 
-    add_subdirectory(tests)
+    # Tests
+    include(CTest)
+
+    # GTest configuration from https://google.github.io/googletest/quickstart-cmake.html#set-up-a-project
+    if (BUILD_TESTING)
+        set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+
+        FetchContent_Declare(
+            googletest
+            URL https://github.com/google/googletest/releases/download/v1.18.0/googletest-1.18.0.tar.gz
+        )
+        # For Windows: Prevent overriding the parent project's compiler/linker settings
+        set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+        FetchContent_MakeAvailable(googletest)
+
+        add_subdirectory(tests)
+    endif()
+
+    # Examples
+    add_subdirectory(examples)
+
 endif()
